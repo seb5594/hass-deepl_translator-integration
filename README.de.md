@@ -1,4 +1,4 @@
-# DeepL Translate für Home Assistant
+# DeepL Translator für Home Assistant
 
 🇬🇧 [English version](README.md)
 
@@ -9,18 +9,22 @@ und mit einem regulären DeepL-API-Abo.
 
 ## Das bekommst du
 
-- **`deepl_translate.translate_text`**: ein oder mehrere Texte hinein, Übersetzungen heraus. Das
+- **`deepl_translator.translate_text`**: ein oder mehrere Texte hinein, Übersetzungen heraus. Das
   Ergebnis geht an den Aufrufer zurück, daher kann jede Automatisierung, jedes Skript und jede
   Integration es verwenden.
-- **`deepl_translate.translate_document`**: übersetzt eine Datei (Word, PowerPoint, Excel, PDF, HTML,
+- **`deepl_translator.translate_document`**: übersetzt eine Datei (Word, PowerPoint, Excel, PDF, HTML,
   Text und mehr) und speichert sie, wo du es festlegst.
-- **`deepl_translate.translate_structure`**: übersetzt nur die Textwerte von JSON- oder YAML-Daten
+- **`deepl_translator.translate_structure`**: übersetzt nur die Textwerte von JSON- oder YAML-Daten
   (inline oder aus einer Datei) und lässt Schlüssel, Layout, Kommentare und technische Werte in Ruhe.
-- **`deepl_translate.get_languages`**: listet die aktuell unterstützten Sprachen auf.
+- **`deepl_translator.get_languages`**: listet die aktuell unterstützten Sprachen auf.
 - **Verbrauchssensoren**: verbrauchte Zeichen, Limit, Rest, Prozent und Ende des Abrechnungszeitraums.
   Beim kostenlosen Tarif siehst du so sofort, wie viel vom Kontingent weg ist.
 - **Sinnvolle Voreinstellungen**: Die Zielsprache ist mit der Sprache deines Home-Assistant-Servers
   vorausgewählt und lässt sich jederzeit unter *Konfigurieren* ändern.
+- **Zwei Anmeldewege**: API-Schlüssel einfügen oder bei DeepL anmelden (OAuth), ganz ohne Kopieren.
+- **Ganz oder gar nicht**: Eine Anfrage wird geprüft, bevor etwas gesendet wird (Kontingent, Sprachen, Anrede,
+  Größen, Dateitypen). Lässt sie sich nicht vollständig übersetzen, gibt es eine klare Fehlermeldung, und es wird
+  nichts gesendet oder berechnet.
 - **Schont das Kontingent**: Identische Texte werden aus einem kleinen Speicher-Cache beantwortet statt
   doppelt berechnet, und der Verbrauch wird alle 30 Minuten abgefragt (die Abfrage ist kostenlos).
 - **Breite Kompatibilität**: Home Assistant 2023.7 oder neuer, keine zusätzlichen Python-Pakete und kein
@@ -51,31 +55,61 @@ Home-Assistant-Services taugen sie aber nicht:
 
 Deshalb ruft die Integration die REST-API selbst auf. Das ist die leichteste Lösung, funktioniert mit einem
 einfachen API-Schlüssel und gibt jeder anderen Integration einen stabilen Vertrag: einen Home-Assistant-Service,
-der sein Ergebnis zurückgibt. Die MCP-Server von DeepL für deine KI-Assistenten sind ein eigenes Thema und
-werden [weiter unten](#deepl-mit-ki-assistenten-mcp) beschrieben.
+der sein Ergebnis zurückgibt. Wer sich lieber anmeldet, als einen Schlüssel zu kopieren, kann die
+[OAuth-Anmeldung](#anmeldung-mit-oauth-experimentell) nutzen, die mit dem gehosteten MCP-Server von DeepL spricht,
+mit weniger Funktionen. Die MCP-Server von DeepL für deine KI-Assistenten sind ein eigenes Thema und werden
+[weiter unten](#deepl-mit-ki-assistenten-mcp) beschrieben.
 
 ## Installation
 
 ### HACS
 
 1. Füge dieses Repository in HACS als benutzerdefiniertes Repository hinzu (Kategorie *Integration*).
-2. Installiere **DeepL Translate** und starte Home Assistant neu.
+2. Installiere **DeepL Translator** und starte Home Assistant neu.
 
 ### Manuell
 
-Kopiere `custom_components/deepl_translate` in den Ordner `custom_components` deiner Konfiguration (oder
+Kopiere `custom_components/deepl_translator` in den Ordner `custom_components` deiner Konfiguration (oder
 entpacke dort die ZIP-Datei der neuesten Version) und starte Home Assistant neu.
 
 ## Einrichtung
 
+Öffne in Home Assistant *Einstellungen > Geräte & Dienste > Integration hinzufügen*, wähle **DeepL Translator**
+und entscheide, wie du dich anmeldest.
+
+### Mit API-Schlüssel (voller Funktionsumfang)
+
 1. Erstelle in deinem DeepL-Konto unter *Konto > Schlüssel und Limits* einen API-Schlüssel. Der kostenlose
    API-Tarif umfasst 500.000 Zeichen pro Monat.
-2. Öffne in Home Assistant *Einstellungen > Geräte & Dienste > Integration hinzufügen* und wähle
-   **DeepL Translate**.
-3. Füge den Schlüssel ein und prüfe die Standard-Zielsprache, die aus deiner Serversprache vorausgewählt wird.
+2. Wähle *API-Schlüssel*, füge den Schlüssel ein und prüfe die Standard-Zielsprache, die aus deiner Serversprache
+   vorausgewählt wird.
 
-Du kannst mehrere Konten hinzufügen (zum Beispiel einen kostenlosen und einen Pro-Schlüssel). Bei mehr als
-einem Konto nennst du in Service-Aufrufen das gewünschte mit `config_entry_id`; bei nur einem Konto ist nichts
+### Anmeldung mit OAuth (experimentell)
+
+Wähle *Bei DeepL anmelden*. Home Assistant registriert sich bei DeepL, leitet dich zur Anmeldeseite von DeepL und
+merkt sich das Refresh-Token; ein Schlüssel kommt nicht vor. Eine Testübersetzung eines Wortes beweist danach, dass
+die Anmeldung funktioniert, bevor das Konto hinzugefügt wird.
+
+| | API-Schlüssel | OAuth |
+| --- | --- | --- |
+| `translate_text`, `translate_structure`, `get_languages` | ja | ja (die Sprachliste ist eingebaut) |
+| `translate_document` | ja | nein |
+| Platzhalterschutz und Markup-Behandlung | ja | nein |
+| Verbrauchssensoren und Kontingentprüfung vor dem Senden | ja | nein, DeepL liefert so keine Verbrauchswerte |
+| Sprach- und Anredeprüfung vor dem Senden | anhand der Live-Liste von DeepL | nein |
+| Anfragelimit | 128 KiB pro Anfrage | 5.000 Zeichen (kostenlos) bzw. 128.000 pro Anfrage, automatisch aufgeteilt |
+
+Voraussetzung: Home Assistant muss unter einer Adresse erreichbar sein, auf die DeepL deinen Browser zurückleiten
+kann (die Weiterleitung von [My Home Assistant](https://my.home-assistant.io), die die meisten Installationen
+haben, oder eine externe URL). Die Anmeldung nutzt den gehosteten MCP-Server von DeepL; OAuth-Endpunkte, Dynamic
+Client Registration und PKCE-Unterstützung werden aus den Metadaten des Servers gelesen. Das wurde anhand der
+veröffentlichten Spezifikationen und Metadaten geschrieben, und DeepL hat die Argumente seines Übersetzungs-Tools
+nicht dokumentiert, daher werden sie aus dem Schema des Tools gelesen. Weicht etwas ab, schlägt die Testübersetzung
+fehl und das Konto wird nicht hinzugefügt. Melde bitte, was du siehst.
+
+Du kannst ein API-Schlüssel-Konto neben einem OAuth-Konto behalten und mit `config_entry_id` zwischen ihnen wählen.
+Auch mehrere Konten gleicher Art sind möglich (zum Beispiel ein kostenloser und ein Pro-Schlüssel); bei mehr als
+einem Konto nennst du in Service-Aufrufen das gewünschte mit `config_entry_id`, bei nur einem ist nichts
 Zusätzliches nötig.
 
 ### Optionen
@@ -115,9 +149,28 @@ severity:
   red: 90
 ```
 
+## Es wird nichts gesendet, wenn die Anfrage nicht vollständig möglich ist
+
+Bevor eine Anfrage Home Assistant verlässt, wird sie als Ganzes geprüft. Schlägt eine Prüfung an, gibt es einen
+klaren Fehler, der mit *Nothing was sent to DeepL.* endet. Die Prüfungen:
+
+| Prüfung | Abgelehnt, wenn | Benötigt |
+| --- | --- | --- |
+| Kontingent | die noch benötigten Zeichen (zwischengespeicherte Texte zählen nicht) mehr sind als übrig; ein veralteter Wert wird vorher kostenlos aktualisiert | API-Schlüssel |
+| Ziel- und Quellsprache | DeepL sie nicht listet; die Meldung schlägt ähnliche Codes vor | API-Schlüssel |
+| Anrede | `more` oder `less` für eine Sprache ohne Anrede verlangt wird (`prefer_more` und `prefer_less` gehen immer) | API-Schlüssel |
+| Textgröße | ein einzelner Text für eine Anfrage zu lang ist, egal wie aufgeteilt wird | beide |
+| Dateityp | die Endung keine ist, die DeepL übersetzt | API-Schlüssel |
+| Markup und Platzhalter | sie verlangt werden, das Konto sie aber nicht schützen kann | OAuth |
+| Ausgabedatei | sie existiert (ohne `overwrite`), der Eingabedatei entspricht oder außerhalb der erlaubten Ordner liegt | beide |
+
+Lässt sich eine Prüfung nicht durchführen (etwa weil die Sprachliste von DeepL nicht erreichbar ist), geht die
+Anfrage trotzdem raus und DeepL entscheidet. Eine Dateiübersetzung schreibt ihre Ausgabe erst, nachdem jeder
+String zurückgekommen ist.
+
 ## Services
 
-### `deepl_translate.translate_text`
+### `deepl_translator.translate_text`
 
 | Feld | Pflicht | Beschreibung |
 | --- | --- | --- |
@@ -143,7 +196,7 @@ target_language: DE
 Leere Texte kommen unverändert zurück und werden nicht an DeepL geschickt. Sprachcodes sind großzügig: `de`,
 `pt_br` und `PT-BR` funktionieren alle, und `EN` oder `PT` werden zu `EN-US` und `PT-PT`.
 
-### `deepl_translate.translate_document`
+### `deepl_translator.translate_document`
 
 | Feld | Pflicht | Beschreibung |
 | --- | --- | --- |
@@ -160,7 +213,7 @@ Starte ihn aus einem Skript (`script.turn_on`), wenn eine Automatisierung nicht 
 Antwort enthält `output_file`, `target_language`, `document_id` und `billed_characters`.
 
 ```yaml
-action: deepl_translate.translate_document
+action: deepl_translator.translate_document
 data:
   input_file: /config/www/manual.docx
   output_file: /config/www/manual.de.docx
@@ -168,7 +221,7 @@ data:
   overwrite: true
 ```
 
-### `deepl_translate.translate_structure`
+### `deepl_translator.translate_structure`
 
 Für Konfigurationsdateien, Übersetzungsdateien, Dashboards und andere strukturierte Daten. Reiner Text gehört
 zu `translate_text`; dieser Service liest die Struktur und schickt **nur die Textwerte** an DeepL. Danach setzt
@@ -209,7 +262,7 @@ Was der Service mit einer Datei macht:
 > prüfe die Liste mit `dry_run`.
 
 ```yaml
-action: deepl_translate.translate_structure
+action: deepl_translator.translate_structure
 data:
   input_file: /config/custom_components/my_integration/translations/en.json
   output_file: /config/custom_components/my_integration/translations/de.json
@@ -220,7 +273,7 @@ data:
 Inline-Daten kommen als Kopie mit derselben Form zurück; ein Dateiaufruf liefert stattdessen den Pfad:
 
 ```yaml
-action: deepl_translate.translate_structure
+action: deepl_translator.translate_structure
 data:
   data:
     title: Welcome
@@ -236,7 +289,7 @@ Der nächstgelegene Schlüssel entscheidet: Bei den Einträgen einer Liste ist d
 enthält. Ein `dry_run` liefert `strings: [{path, text}]` mit Pfaden wie `views[0].cards[1].title` sowie
 `characters` und `skipped_strings`.
 
-### `deepl_translate.get_languages`
+### `deepl_translator.get_languages`
 
 Liefert `languages: [{code, name, supports_formality}]` für `type: target` (Standard) oder `type: source`. Die
 Antwort wird einen Tag zwischengespeichert.
@@ -256,7 +309,7 @@ automation:
         to: "on"
         for: "00:05:00"
     actions:
-      - action: deepl_translate.translate_text
+      - action: deepl_translator.translate_text
         data:
           text: "The front door has been open for five minutes."
           context: Short push notification
@@ -271,13 +324,13 @@ Die Automatisierung nutzt die Syntax von Home Assistant 2024.10 und neuer (`trig
 
 ### Aus einer anderen Integration verwenden
 
-Rufe den Service wie jeden anderen auf und frage die Antwort ab. Trage `"after_dependencies": ["deepl_translate"]`
+Rufe den Service wie jeden anderen auf und frage die Antwort ab. Trage `"after_dependencies": ["deepl_translator"]`
 in dein Manifest ein und prüfe, ob der Service existiert, damit deine Integration auch ohne DeepL funktioniert.
 
 ```python
-if hass.services.has_service("deepl_translate", "translate_text"):
+if hass.services.has_service("deepl_translator", "translate_text"):
     response = await hass.services.async_call(
-        "deepl_translate",
+        "deepl_translator",
         "translate_text",
         {"text": message, "target_language": "DE"},
         blocking=True,
@@ -303,7 +356,7 @@ automation:
       - trigger: state
         entity_id: input_text.daily_tip
     actions:
-      - action: deepl_translate.translate_text
+      - action: deepl_translator.translate_text
         data:
           text: "{{ states('input_text.daily_tip') }}"
         response_variable: translated
@@ -401,7 +454,7 @@ Sensoren anzeigen:
            description: Target language code
            example: DE
        sequence:
-         - action: deepl_translate.translate_text
+         - action: deepl_translator.translate_text
            data:
              text: "{{ text }}"
              target_language: "{{ language }}"
@@ -416,6 +469,11 @@ Sensoren anzeigen:
    Konversations-Agenten von Assist.
 
 ## Gut zu wissen
+
+- Logo und Icon sind eigene Grafiken für dieses Projekt: ein Haus und zwei Sprechblasen. Sie ahmen weder das Logo von
+  DeepL noch das von Home Assistant nach. Dies ist eine inoffizielle Integration, nicht von DeepL SE oder dem
+  Home-Assistant-Projekt erstellt, empfohlen oder unterstützt. DeepL ist eine Marke der DeepL SE und Home Assistant
+  eine Marke der Open Home Foundation; sie werden hier nur genannt, um zu sagen, womit die Integration arbeitet.
 
 - Kostenlose Konten übersetzen bis zu 500.000 Zeichen pro Monat. Ist das Kontingent aufgebraucht, antwortet DeepL
   mit `456`; der Service schlägt dann mit einer klaren Meldung fehl, statt es erneut zu versuchen.
@@ -433,4 +491,4 @@ findest du in der [Workflow-Engine](https://github.com/seb5594/hass-workflows).
 
 ## Lizenz
 
-Veröffentlicht unter der [Apache License 2.0](LICENSE).
+Veröffentlicht unter der [MIT-Lizenz](LICENSE).

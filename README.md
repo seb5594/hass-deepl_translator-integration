@@ -1,19 +1,26 @@
 <!-- header:begin (generated from project metadata) -->
-<h1 align="center">DeepL Translate</h1>
+<h1 align="center">DeepL Translator</h1>
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/seb5594/hass-deepl_translator-integration/main/custom_components/deepl_translator/brand/dark_logo@2x.png">
+    <img src="https://raw.githubusercontent.com/seb5594/hass-deepl_translator-integration/main/custom_components/deepl_translator/brand/logo@2x.png" alt="DeepL Translator" width="320" height="160">
+  </picture>
+</p>
 
 ---
 
 <p align="center">
   <a href="https://paypal.me/seb5594"><img src="https://img.shields.io/static/v1?label=Support&amp;message=PayPal&amp;color=0070BA&amp;logo=paypal&amp;logoColor=white&amp;style=for-the-badge" alt="PayPal" height="40"></a>
   <a href="https://buymeacoffee.com/seb5594"><img src="https://img.shields.io/static/v1?label=Support&amp;message=Buy%20Me%20a%20Coffee&amp;color=FFDD00&amp;logo=buy-me-a-coffee&amp;logoColor=black&amp;style=for-the-badge" alt="Buy Me a Coffee" height="40"></a><br>
-  <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=seb5594&amp;repository=hass-deepl_translate-integration&amp;category=integration"><img src="https://img.shields.io/static/v1?label=HACS&amp;message=Add%20integration&amp;color=41BDF5&amp;logo=homeassistantcommunitystore&amp;logoColor=white&amp;style=for-the-badge" alt="HACS" height="28"></a>
-  <a href="https://github.com/seb5594/hass-deepl_translate-integration/actions/workflows/compat.yml"><img src="https://img.shields.io/static/v1?label=home%20assistant&amp;message=%E2%89%A5%202023.7.0&amp;color=1877A5&amp;style=for-the-badge" alt="home assistant" height="28"></a>
-  <a href="https://github.com/seb5594/hass-deepl_translate-integration/releases"><img src="https://img.shields.io/static/v1?label=version&amp;message=1.0.0b1&amp;color=1877A5&amp;style=for-the-badge" alt="version" height="28"></a><br>
-  <a href="https://github.com/seb5594/hass-deepl_translate-integration/stargazers"><img src="https://img.shields.io/github/stars/seb5594/hass-deepl_translate-integration?label=stars&amp;style=flat" alt="stars" height="20"></a>
-  <a href="https://github.com/seb5594/hass-deepl_translate-integration/releases"><img src="https://img.shields.io/github/downloads/seb5594/hass-deepl_translate-integration/latest/total?label=downloads&amp;color=1877A5&amp;style=flat" alt="downloads" height="20"></a>
-  <a href="https://github.com/seb5594/hass-deepl_translate-integration/issues"><img src="https://img.shields.io/github/issues/seb5594/hass-deepl_translate-integration?label=issues&amp;style=flat" alt="issues" height="20"></a>
-  <a href="https://github.com/seb5594/hass-deepl_translate-integration/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/seb5594/hass-deepl_translate-integration/ci.yml?branch=main&amp;label=checks&amp;style=flat" alt="checks" height="20"></a>
-  <a href="https://github.com/seb5594/hass-deepl_translate-integration#license"><img src="https://img.shields.io/github/license/seb5594/hass-deepl_translate-integration?label=license&amp;style=flat" alt="license" height="20"></a>
+  <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=seb5594&amp;repository=hass-deepl_translator-integration&amp;category=integration"><img src="https://img.shields.io/static/v1?label=HACS&amp;message=Add%20integration&amp;color=41BDF5&amp;logo=homeassistantcommunitystore&amp;logoColor=white&amp;style=for-the-badge" alt="HACS" height="28"></a>
+  <a href="https://github.com/seb5594/hass-deepl_translator-integration/actions/workflows/compat.yml"><img src="https://img.shields.io/static/v1?label=home%20assistant&amp;message=%E2%89%A5%202023.7.0&amp;color=1877A5&amp;style=for-the-badge" alt="home assistant" height="28"></a>
+  <a href="https://github.com/seb5594/hass-deepl_translator-integration/releases"><img src="https://img.shields.io/static/v1?label=version&amp;message=1.0.0b2&amp;color=1877A5&amp;style=for-the-badge" alt="version" height="28"></a><br>
+  <a href="https://github.com/seb5594/hass-deepl_translator-integration/stargazers"><img src="https://img.shields.io/github/stars/seb5594/hass-deepl_translator-integration?label=stars&amp;style=flat" alt="stars" height="20"></a>
+  <a href="https://github.com/seb5594/hass-deepl_translator-integration/releases"><img src="https://img.shields.io/github/downloads/seb5594/hass-deepl_translator-integration/latest/total?label=downloads&amp;color=1877A5&amp;style=flat" alt="downloads" height="20"></a>
+  <a href="https://github.com/seb5594/hass-deepl_translator-integration/issues"><img src="https://img.shields.io/github/issues/seb5594/hass-deepl_translator-integration?label=issues&amp;style=flat" alt="issues" height="20"></a>
+  <a href="https://github.com/seb5594/hass-deepl_translator-integration/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/seb5594/hass-deepl_translator-integration/ci.yml?branch=main&amp;label=checks&amp;style=flat" alt="checks" height="20"></a>
+  <a href="https://github.com/seb5594/hass-deepl_translator-integration#license"><img src="https://img.shields.io/github/license/seb5594/hass-deepl_translator-integration?label=license&amp;style=flat" alt="license" height="20"></a>
 </p>
 <!-- header:end -->
 
@@ -26,17 +33,21 @@ with a regular DeepL API subscription.
 
 ## What you get
 
-- **`deepl_translate.translate_text`**: one or many texts in, translations out. The result is
+- **`deepl_translator.translate_text`**: one or many texts in, translations out. The result is
   returned to the caller, so any automation, script or integration can use it.
-- **`deepl_translate.translate_document`**: translates a file (Word, PowerPoint, Excel, PDF,
+- **`deepl_translator.translate_document`**: translates a file (Word, PowerPoint, Excel, PDF,
   HTML, plain text and more) and saves it where you tell it to.
-- **`deepl_translate.translate_structure`**: translates only the text values of JSON or YAML data
+- **`deepl_translator.translate_structure`**: translates only the text values of JSON or YAML data
   (inline or from a file) and leaves keys, layout, comments and technical values alone.
-- **`deepl_translate.get_languages`**: lists the languages DeepL currently supports.
+- **`deepl_translator.get_languages`**: lists the languages DeepL currently supports.
 - **Usage sensors**: characters used, limit, remaining, percent used and the end of the billing
   period. They tell you at a glance how much of the free quota is gone.
 - **Sensible defaults**: the target language is preselected with the language of your Home
   Assistant server and can be changed at any time under *Configure*.
+- **Two ways to sign in**: paste an API key, or log in at DeepL (OAuth) and copy nothing at all.
+- **All or nothing**: a request is checked before anything is sent (quota, languages, formality,
+  sizes, file types). If it cannot be translated completely you get a clear error, and nothing is
+  sent or billed.
 - **Easy on the quota**: identical texts are answered from a small in-memory cache instead of being
   billed twice, and the usage figures are read every 30 minutes (reading them is free).
 - **Wide compatibility**: Home Assistant 2023.7 or newer, no extra Python packages and no extra
@@ -66,7 +77,9 @@ Home Assistant services, though:
 
 So the integration calls the REST API itself. That is the lightest option, works with a plain API key
 and gives every other integration a stable contract: a Home Assistant service that returns its
-result. Using DeepL's MCP servers with your AI assistants is a separate matter, described
+result. For people who would rather log in than copy a key, there is also an
+[OAuth sign-in](#signing-in-with-oauth-experimental) that talks to DeepL's hosted MCP server, with
+fewer features. Using DeepL's MCP servers with your AI assistants is a separate matter, described
 [below](#using-deepl-with-ai-assistants-mcp).
 
 ## Installation
@@ -75,21 +88,49 @@ result. Using DeepL's MCP servers with your AI assistants is a separate matter, 
 
 1. Add this repository to HACS as a custom repository (category *Integration*), or use the
    *HACS* badge above.
-2. Install **DeepL Translate** and restart Home Assistant.
+2. Install **DeepL Translator** and restart Home Assistant.
 
 ### Manual
 
-Copy `custom_components/deepl_translate` into the `custom_components` folder of your configuration
+Copy `custom_components/deepl_translator` into the `custom_components` folder of your configuration
 (or unpack the ZIP of the latest release there) and restart Home Assistant.
 
 ## Setup
 
+In Home Assistant open *Settings > Devices & services > Add integration*, pick **DeepL
+Translator** and choose how to sign in.
+
+### With an API key (full feature set)
+
 1. Create an API key in your DeepL account under *Account > Keys and limits*. The free API plan
    covers 500,000 characters per month.
-2. In Home Assistant open *Settings > Devices & services > Add integration* and pick **DeepL
-   Translate**.
-3. Paste the key and check the default target language, which is preselected from your server
-   language.
+2. Choose *API key*, paste the key and check the default target language, which is preselected from
+   your server language.
+
+### Signing in with OAuth (experimental)
+
+Choose *Sign in at DeepL*. Home Assistant registers itself at DeepL, sends you to DeepL's login page
+and keeps the refresh token; no key is involved. A test translation of one word then proves that the
+sign-in works before the account is added.
+
+| | API key | OAuth |
+| --- | --- | --- |
+| `translate_text`, `translate_structure`, `get_languages` | yes | yes (the language list is built in) |
+| `translate_document` | yes | no |
+| Placeholder protection and markup handling | yes | no |
+| Usage sensors and the quota check before sending | yes | no, DeepL offers no usage figures this way |
+| Language and formality check before sending | against DeepL's live list | no |
+| Request limit | 128 KiB per request | 5,000 characters (free) or 128,000 per request, split automatically |
+
+What you need: Home Assistant must be reachable under an address DeepL can send your browser back to
+(the [My Home Assistant](https://my.home-assistant.io) redirect, which most installations already
+have, or an external URL). The sign-in uses DeepL's hosted MCP server; its OAuth endpoints, dynamic
+client registration and PKCE support are read from the server's own metadata. This was written
+against the published specifications and metadata, and DeepL has not documented the arguments of its
+translation tool, so they are read from the tool's own schema. If anything differs, the test
+translation fails and the account is not added. Please report what you see.
+
+You can keep an API-key account next to an OAuth one and pick between them with `config_entry_id`.
 
 You can add several accounts (for example a free and a Pro key). With more than one account,
 service calls name the one to use with `config_entry_id`; with a single account nothing extra is
@@ -132,9 +173,27 @@ severity:
   red: 90
 ```
 
+## Nothing is sent when the request cannot be completed
+
+Before a request leaves Home Assistant, the whole request is checked, and a failed check raises a
+clear error that ends with *Nothing was sent to DeepL.* The checks:
+
+| Check | Refused when | Needs |
+| --- | --- | --- |
+| Quota | the characters still needed (cached texts do not count) exceed what is left; a stale figure is refreshed first, which is free | API key |
+| Target and source language | DeepL does not list it; the error suggests close matches | API key |
+| Formality | `more` or `less` is requested for a language without it (`prefer_more` and `prefer_less` are fine) | API key |
+| Text size | a single text is too long for one request, however it is split | both |
+| File type | the extension is not one DeepL translates | API key |
+| Markup and placeholders | they are requested but the account cannot protect them | OAuth |
+| Output file | it exists (without `overwrite`), equals the input, or lies outside the allowed folders | both |
+
+If a check cannot be made (for example DeepL's language list is unreachable), the request goes ahead
+and DeepL decides. A file translation writes its output only after every string came back.
+
 ## Services
 
-### `deepl_translate.translate_text`
+### `deepl_translator.translate_text`
 
 | Field | Required | Description |
 | --- | --- | --- |
@@ -160,7 +219,7 @@ target_language: DE
 Empty texts are returned unchanged and not sent to DeepL. Language codes are forgiving: `de`,
 `pt_br` and `PT-BR` all work, and `EN` or `PT` are turned into `EN-US` and `PT-PT`.
 
-### `deepl_translate.translate_document`
+### `deepl_translator.translate_document`
 
 | Field | Required | Description |
 | --- | --- | --- |
@@ -177,7 +236,7 @@ ones. Start it from a script (`script.turn_on`) when an automation should not wa
 `target_language`, `document_id` and `billed_characters`.
 
 ```yaml
-action: deepl_translate.translate_document
+action: deepl_translator.translate_document
 data:
   input_file: /config/www/manual.docx
   output_file: /config/www/manual.de.docx
@@ -185,7 +244,7 @@ data:
   overwrite: true
 ```
 
-### `deepl_translate.translate_structure`
+### `deepl_translator.translate_structure`
 
 For configuration files, translation files, dashboards and other structured data. Plain text
 goes to `translate_text`; this service reads the structure and sends **only the text values** to
@@ -226,7 +285,7 @@ What the service does with a file:
 > check the list with `dry_run`.
 
 ```yaml
-action: deepl_translate.translate_structure
+action: deepl_translator.translate_structure
 data:
   input_file: /config/custom_components/my_integration/translations/en.json
   output_file: /config/custom_components/my_integration/translations/de.json
@@ -237,7 +296,7 @@ data:
 Inline data is returned as a copy with the same shape; a file call returns the path instead:
 
 ```yaml
-action: deepl_translate.translate_structure
+action: deepl_translator.translate_structure
 data:
   data:
     title: Welcome
@@ -253,7 +312,7 @@ The nearest key decides: for the items of a list that is the key holding the lis
 returns `strings: [{path, text}]` with paths such as `views[0].cards[1].title`, plus `characters`
 and `skipped_strings`.
 
-### `deepl_translate.get_languages`
+### `deepl_translator.get_languages`
 
 Returns `languages: [{code, name, supports_formality}]` for `type: target` (default) or
 `type: source`. The answer is cached for a day.
@@ -274,7 +333,7 @@ automation:
         to: "on"
         for: "00:05:00"
     actions:
-      - action: deepl_translate.translate_text
+      - action: deepl_translator.translate_text
         data:
           text: "The front door has been open for five minutes."
           context: Short push notification
@@ -290,13 +349,13 @@ older versions write `trigger:` and `platform: state` instead.
 ### Use it from another integration
 
 Call the service like any other and ask for the response. Declare
-`"after_dependencies": ["deepl_translate"]` in your manifest and check that the service exists so
+`"after_dependencies": ["deepl_translator"]` in your manifest and check that the service exists so
 your integration keeps working without DeepL.
 
 ```python
-if hass.services.has_service("deepl_translate", "translate_text"):
+if hass.services.has_service("deepl_translator", "translate_text"):
     response = await hass.services.async_call(
-        "deepl_translate",
+        "deepl_translator",
         "translate_text",
         {"text": message, "target_language": "DE"},
         blocking=True,
@@ -320,7 +379,7 @@ automation:
       - trigger: state
         entity_id: input_text.daily_tip
     actions:
-      - action: deepl_translate.translate_text
+      - action: deepl_translator.translate_text
         data:
           text: "{{ states('input_text.daily_tip') }}"
         response_variable: translated
@@ -418,7 +477,7 @@ quota that the sensors show:
            description: Target language code
            example: DE
        sequence:
-         - action: deepl_translate.translate_text
+         - action: deepl_translator.translate_text
            data:
              text: "{{ text }}"
              target_language: "{{ language }}"
@@ -433,6 +492,12 @@ quota that the sensors show:
    script serves Assist's own conversation agents.
 
 ## Good to know
+
+- The logo and icon are original artwork for this project: a house and two speech bubbles. They
+  imitate neither DeepL's nor Home Assistant's logo. This is an unofficial integration, not made,
+  endorsed or supported by DeepL SE or the Home Assistant project. DeepL is a trademark of DeepL SE
+  and Home Assistant a trademark of the Open Home Foundation; both are named here only to say what
+  the integration works with.
 
 - Free accounts translate up to 500,000 characters per month. DeepL answers `456` once the quota is
   gone; the service then fails with a clear message instead of retrying.
@@ -462,7 +527,7 @@ If my work helped you or turned out to be useful, show your appreciation with a 
 <!-- license:begin (generated from the license file) -->
 ## License
 
-[![license](https://img.shields.io/static/v1?label=license&message=Apache-2.0&color=5B6770&style=flat)](LICENSE)
+[![license](https://img.shields.io/static/v1?label=license&message=MIT&color=5B6770&style=flat)](LICENSE)
 
-Published under the [Apache License 2.0](LICENSE).
+Published under the [MIT License](LICENSE).
 <!-- license:end -->
