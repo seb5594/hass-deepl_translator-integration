@@ -1,0 +1,401 @@
+translate_text:
+  fields:
+    text:
+      required: true
+      example: "Good morning!"
+      selector:
+        text:
+          multiline: true
+    target_language:
+      example: "DE"
+      selector:
+        select:
+          mode: dropdown
+          custom_value: true
+          options:
+            - {value: "AR", label: "Arabic (AR)"}
+            - {value: "BG", label: "Bulgarian (BG)"}
+            - {value: "CS", label: "Czech (CS)"}
+            - {value: "DA", label: "Danish (DA)"}
+            - {value: "DE", label: "German (DE)"}
+            - {value: "EL", label: "Greek (EL)"}
+            - {value: "EN-GB", label: "English (British) (EN-GB)"}
+            - {value: "EN-US", label: "English (American) (EN-US)"}
+            - {value: "ES", label: "Spanish (ES)"}
+            - {value: "ES-419", label: "Spanish (Latin American) (ES-419)"}
+            - {value: "ET", label: "Estonian (ET)"}
+            - {value: "FI", label: "Finnish (FI)"}
+            - {value: "FR", label: "French (FR)"}
+            - {value: "HE", label: "Hebrew (HE)"}
+            - {value: "HU", label: "Hungarian (HU)"}
+            - {value: "ID", label: "Indonesian (ID)"}
+            - {value: "IT", label: "Italian (IT)"}
+            - {value: "JA", label: "Japanese (JA)"}
+            - {value: "KO", label: "Korean (KO)"}
+            - {value: "LT", label: "Lithuanian (LT)"}
+            - {value: "LV", label: "Latvian (LV)"}
+            - {value: "NB", label: "Norwegian (Bokmål) (NB)"}
+            - {value: "NL", label: "Dutch (NL)"}
+            - {value: "PL", label: "Polish (PL)"}
+            - {value: "PT-BR", label: "Portuguese (Brazilian) (PT-BR)"}
+            - {value: "PT-PT", label: "Portuguese (European) (PT-PT)"}
+            - {value: "RO", label: "Romanian (RO)"}
+            - {value: "RU", label: "Russian (RU)"}
+            - {value: "SK", label: "Slovak (SK)"}
+            - {value: "SL", label: "Slovenian (SL)"}
+            - {value: "SV", label: "Swedish (SV)"}
+            - {value: "TH", label: "Thai (TH)"}
+            - {value: "TR", label: "Turkish (TR)"}
+            - {value: "UK", label: "Ukrainian (UK)"}
+            - {value: "VI", label: "Vietnamese (VI)"}
+            - {value: "ZH", label: "Chinese (ZH)"}
+            - {value: "ZH-HANS", label: "Chinese (Simplified) (ZH-HANS)"}
+            - {value: "ZH-HANT", label: "Chinese (Traditional) (ZH-HANT)"}
+    source_language:
+      example: "EN"
+      selector:
+        select:
+          mode: dropdown
+          custom_value: true
+          options:
+            - {value: "AR", label: "Arabic (AR)"}
+            - {value: "BG", label: "Bulgarian (BG)"}
+            - {value: "CS", label: "Czech (CS)"}
+            - {value: "DA", label: "Danish (DA)"}
+            - {value: "DE", label: "German (DE)"}
+            - {value: "EL", label: "Greek (EL)"}
+            - {value: "EN", label: "English (EN)"}
+            - {value: "ES", label: "Spanish (ES)"}
+            - {value: "ET", label: "Estonian (ET)"}
+            - {value: "FI", label: "Finnish (FI)"}
+            - {value: "FR", label: "French (FR)"}
+            - {value: "HE", label: "Hebrew (HE)"}
+            - {value: "HU", label: "Hungarian (HU)"}
+            - {value: "ID", label: "Indonesian (ID)"}
+            - {value: "IT", label: "Italian (IT)"}
+            - {value: "JA", label: "Japanese (JA)"}
+            - {value: "KO", label: "Korean (KO)"}
+            - {value: "LT", label: "Lithuanian (LT)"}
+            - {value: "LV", label: "Latvian (LV)"}
+            - {value: "NB", label: "Norwegian (Bokmål) (NB)"}
+            - {value: "NL", label: "Dutch (NL)"}
+            - {value: "PL", label: "Polish (PL)"}
+            - {value: "PT", label: "Portuguese (PT)"}
+            - {value: "RO", label: "Romanian (RO)"}
+            - {value: "RU", label: "Russian (RU)"}
+            - {value: "SK", label: "Slovak (SK)"}
+            - {value: "SL", label: "Slovenian (SL)"}
+            - {value: "SV", label: "Swedish (SV)"}
+            - {value: "TH", label: "Thai (TH)"}
+            - {value: "TR", label: "Turkish (TR)"}
+            - {value: "UK", label: "Ukrainian (UK)"}
+            - {value: "VI", label: "Vietnamese (VI)"}
+            - {value: "ZH", label: "Chinese (ZH)"}
+    formality:
+      default: default
+      selector:
+        select:
+          mode: dropdown
+          options: [default, more, less, prefer_more, prefer_less]
+    context:
+      example: "A short notification shown on a phone lock screen"
+      selector:
+        text:
+          multiline: true
+    glossary_id:
+      selector:
+        text:
+    tag_handling:
+      default: none
+      selector:
+        select:
+          mode: dropdown
+          options: [none, xml, html]
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: deepl_translate
+
+translate_document:
+  fields:
+    input_file:
+      required: true
+      example: "/config/www/manual.docx"
+      selector:
+        text:
+    output_file:
+      example: "/config/www/manual.de.docx"
+      selector:
+        text:
+    target_language:
+      example: "DE"
+      selector:
+        select:
+          mode: dropdown
+          custom_value: true
+          options:
+            - {value: "AR", label: "Arabic (AR)"}
+            - {value: "BG", label: "Bulgarian (BG)"}
+            - {value: "CS", label: "Czech (CS)"}
+            - {value: "DA", label: "Danish (DA)"}
+            - {value: "DE", label: "German (DE)"}
+            - {value: "EL", label: "Greek (EL)"}
+            - {value: "EN-GB", label: "English (British) (EN-GB)"}
+            - {value: "EN-US", label: "English (American) (EN-US)"}
+            - {value: "ES", label: "Spanish (ES)"}
+            - {value: "ES-419", label: "Spanish (Latin American) (ES-419)"}
+            - {value: "ET", label: "Estonian (ET)"}
+            - {value: "FI", label: "Finnish (FI)"}
+            - {value: "FR", label: "French (FR)"}
+            - {value: "HE", label: "Hebrew (HE)"}
+            - {value: "HU", label: "Hungarian (HU)"}
+            - {value: "ID", label: "Indonesian (ID)"}
+            - {value: "IT", label: "Italian (IT)"}
+            - {value: "JA", label: "Japanese (JA)"}
+            - {value: "KO", label: "Korean (KO)"}
+            - {value: "LT", label: "Lithuanian (LT)"}
+            - {value: "LV", label: "Latvian (LV)"}
+            - {value: "NB", label: "Norwegian (Bokmål) (NB)"}
+            - {value: "NL", label: "Dutch (NL)"}
+            - {value: "PL", label: "Polish (PL)"}
+            - {value: "PT-BR", label: "Portuguese (Brazilian) (PT-BR)"}
+            - {value: "PT-PT", label: "Portuguese (European) (PT-PT)"}
+            - {value: "RO", label: "Romanian (RO)"}
+            - {value: "RU", label: "Russian (RU)"}
+            - {value: "SK", label: "Slovak (SK)"}
+            - {value: "SL", label: "Slovenian (SL)"}
+            - {value: "SV", label: "Swedish (SV)"}
+            - {value: "TH", label: "Thai (TH)"}
+            - {value: "TR", label: "Turkish (TR)"}
+            - {value: "UK", label: "Ukrainian (UK)"}
+            - {value: "VI", label: "Vietnamese (VI)"}
+            - {value: "ZH", label: "Chinese (ZH)"}
+            - {value: "ZH-HANS", label: "Chinese (Simplified) (ZH-HANS)"}
+            - {value: "ZH-HANT", label: "Chinese (Traditional) (ZH-HANT)"}
+    source_language:
+      example: "EN"
+      selector:
+        select:
+          mode: dropdown
+          custom_value: true
+          options:
+            - {value: "AR", label: "Arabic (AR)"}
+            - {value: "BG", label: "Bulgarian (BG)"}
+            - {value: "CS", label: "Czech (CS)"}
+            - {value: "DA", label: "Danish (DA)"}
+            - {value: "DE", label: "German (DE)"}
+            - {value: "EL", label: "Greek (EL)"}
+            - {value: "EN", label: "English (EN)"}
+            - {value: "ES", label: "Spanish (ES)"}
+            - {value: "ET", label: "Estonian (ET)"}
+            - {value: "FI", label: "Finnish (FI)"}
+            - {value: "FR", label: "French (FR)"}
+            - {value: "HE", label: "Hebrew (HE)"}
+            - {value: "HU", label: "Hungarian (HU)"}
+            - {value: "ID", label: "Indonesian (ID)"}
+            - {value: "IT", label: "Italian (IT)"}
+            - {value: "JA", label: "Japanese (JA)"}
+            - {value: "KO", label: "Korean (KO)"}
+            - {value: "LT", label: "Lithuanian (LT)"}
+            - {value: "LV", label: "Latvian (LV)"}
+            - {value: "NB", label: "Norwegian (Bokmål) (NB)"}
+            - {value: "NL", label: "Dutch (NL)"}
+            - {value: "PL", label: "Polish (PL)"}
+            - {value: "PT", label: "Portuguese (PT)"}
+            - {value: "RO", label: "Romanian (RO)"}
+            - {value: "RU", label: "Russian (RU)"}
+            - {value: "SK", label: "Slovak (SK)"}
+            - {value: "SL", label: "Slovenian (SL)"}
+            - {value: "SV", label: "Swedish (SV)"}
+            - {value: "TH", label: "Thai (TH)"}
+            - {value: "TR", label: "Turkish (TR)"}
+            - {value: "UK", label: "Ukrainian (UK)"}
+            - {value: "VI", label: "Vietnamese (VI)"}
+            - {value: "ZH", label: "Chinese (ZH)"}
+    formality:
+      default: default
+      selector:
+        select:
+          mode: dropdown
+          options: [default, more, less, prefer_more, prefer_less]
+    glossary_id:
+      selector:
+        text:
+    overwrite:
+      default: false
+      selector:
+        boolean:
+    timeout:
+      default: 600
+      selector:
+        number:
+          min: 30
+          max: 3600
+          step: 30
+          unit_of_measurement: s
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: deepl_translate
+
+translate_structure:
+  fields:
+    data:
+      example: '{"title": "Welcome", "items": ["Open", "Close"]}'
+      selector:
+        object:
+    input_file:
+      example: "/config/custom_components/my_integration/translations/en.json"
+      selector:
+        text:
+    output_file:
+      example: "/config/custom_components/my_integration/translations/de.json"
+      selector:
+        text:
+    format:
+      default: auto
+      selector:
+        select:
+          mode: dropdown
+          options: [auto, json, yaml]
+    only_keys:
+      example: '["name", "title", "message"]'
+      selector:
+        text:
+          multiple: true
+    ignore_keys:
+      example: '["id", "icon"]'
+      selector:
+        text:
+          multiple: true
+    skip_technical_values:
+      default: true
+      selector:
+        boolean:
+    protect_placeholders:
+      default: true
+      selector:
+        boolean:
+    dry_run:
+      default: false
+      selector:
+        boolean:
+    overwrite:
+      default: false
+      selector:
+        boolean:
+    target_language:
+      example: "DE"
+      selector:
+        select:
+          mode: dropdown
+          custom_value: true
+          options:
+            - {value: "AR", label: "Arabic (AR)"}
+            - {value: "BG", label: "Bulgarian (BG)"}
+            - {value: "CS", label: "Czech (CS)"}
+            - {value: "DA", label: "Danish (DA)"}
+            - {value: "DE", label: "German (DE)"}
+            - {value: "EL", label: "Greek (EL)"}
+            - {value: "EN-GB", label: "English (British) (EN-GB)"}
+            - {value: "EN-US", label: "English (American) (EN-US)"}
+            - {value: "ES", label: "Spanish (ES)"}
+            - {value: "ES-419", label: "Spanish (Latin American) (ES-419)"}
+            - {value: "ET", label: "Estonian (ET)"}
+            - {value: "FI", label: "Finnish (FI)"}
+            - {value: "FR", label: "French (FR)"}
+            - {value: "HE", label: "Hebrew (HE)"}
+            - {value: "HU", label: "Hungarian (HU)"}
+            - {value: "ID", label: "Indonesian (ID)"}
+            - {value: "IT", label: "Italian (IT)"}
+            - {value: "JA", label: "Japanese (JA)"}
+            - {value: "KO", label: "Korean (KO)"}
+            - {value: "LT", label: "Lithuanian (LT)"}
+            - {value: "LV", label: "Latvian (LV)"}
+            - {value: "NB", label: "Norwegian (Bokmål) (NB)"}
+            - {value: "NL", label: "Dutch (NL)"}
+            - {value: "PL", label: "Polish (PL)"}
+            - {value: "PT-BR", label: "Portuguese (Brazilian) (PT-BR)"}
+            - {value: "PT-PT", label: "Portuguese (European) (PT-PT)"}
+            - {value: "RO", label: "Romanian (RO)"}
+            - {value: "RU", label: "Russian (RU)"}
+            - {value: "SK", label: "Slovak (SK)"}
+            - {value: "SL", label: "Slovenian (SL)"}
+            - {value: "SV", label: "Swedish (SV)"}
+            - {value: "TH", label: "Thai (TH)"}
+            - {value: "TR", label: "Turkish (TR)"}
+            - {value: "UK", label: "Ukrainian (UK)"}
+            - {value: "VI", label: "Vietnamese (VI)"}
+            - {value: "ZH", label: "Chinese (ZH)"}
+            - {value: "ZH-HANS", label: "Chinese (Simplified) (ZH-HANS)"}
+            - {value: "ZH-HANT", label: "Chinese (Traditional) (ZH-HANT)"}
+    source_language:
+      example: "EN"
+      selector:
+        select:
+          mode: dropdown
+          custom_value: true
+          options:
+            - {value: "AR", label: "Arabic (AR)"}
+            - {value: "BG", label: "Bulgarian (BG)"}
+            - {value: "CS", label: "Czech (CS)"}
+            - {value: "DA", label: "Danish (DA)"}
+            - {value: "DE", label: "German (DE)"}
+            - {value: "EL", label: "Greek (EL)"}
+            - {value: "EN", label: "English (EN)"}
+            - {value: "ES", label: "Spanish (ES)"}
+            - {value: "ET", label: "Estonian (ET)"}
+            - {value: "FI", label: "Finnish (FI)"}
+            - {value: "FR", label: "French (FR)"}
+            - {value: "HE", label: "Hebrew (HE)"}
+            - {value: "HU", label: "Hungarian (HU)"}
+            - {value: "ID", label: "Indonesian (ID)"}
+            - {value: "IT", label: "Italian (IT)"}
+            - {value: "JA", label: "Japanese (JA)"}
+            - {value: "KO", label: "Korean (KO)"}
+            - {value: "LT", label: "Lithuanian (LT)"}
+            - {value: "LV", label: "Latvian (LV)"}
+            - {value: "NB", label: "Norwegian (Bokmål) (NB)"}
+            - {value: "NL", label: "Dutch (NL)"}
+            - {value: "PL", label: "Polish (PL)"}
+            - {value: "PT", label: "Portuguese (PT)"}
+            - {value: "RO", label: "Romanian (RO)"}
+            - {value: "RU", label: "Russian (RU)"}
+            - {value: "SK", label: "Slovak (SK)"}
+            - {value: "SL", label: "Slovenian (SL)"}
+            - {value: "SV", label: "Swedish (SV)"}
+            - {value: "TH", label: "Thai (TH)"}
+            - {value: "TR", label: "Turkish (TR)"}
+            - {value: "UK", label: "Ukrainian (UK)"}
+            - {value: "VI", label: "Vietnamese (VI)"}
+            - {value: "ZH", label: "Chinese (ZH)"}
+    formality:
+      default: default
+      selector:
+        select:
+          mode: dropdown
+          options: [default, more, less, prefer_more, prefer_less]
+    context:
+      selector:
+        text:
+          multiline: true
+    glossary_id:
+      selector:
+        text:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: deepl_translate
+
+get_languages:
+  fields:
+    type:
+      default: target
+      selector:
+        select:
+          mode: dropdown
+          options: [target, source]
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: deepl_translate
