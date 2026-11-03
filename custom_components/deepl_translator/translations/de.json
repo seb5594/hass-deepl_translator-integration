@@ -3,6 +3,18 @@
     "step": {
       "user": {
         "title": "DeepL verbinden",
+        "description": "Wähle, wie sich Home Assistant bei DeepL anmeldet.",
+        "menu_options": {
+          "api_key": "API-Schlüssel",
+          "oauth": "Bei DeepL anmelden (OAuth)"
+        },
+        "menu_option_descriptions": {
+          "api_key": "Voller Funktionsumfang: Text, Dokumente, strukturierte Daten und die Verbrauchssensoren. Funktioniert mit kostenlosen (`:fx`) und Pro-Schlüsseln.",
+          "oauth": "Kein Schlüssel zum Kopieren: Du meldest dich bei DeepL an. Übersetzt nur Text und strukturierte Daten, ohne Verbrauchssensoren und ohne Dokumente. Experimentell."
+        }
+      },
+      "api_key": {
+        "title": "DeepL mit einem API-Schlüssel verbinden",
         "description": "Erstelle einen API-Schlüssel in deinem DeepL-Konto unter *Konto > Schlüssel und Limits*. Schlüssel des kostenlosen Tarifs enden auf `:fx`; kostenlose und Pro-Schlüssel funktionieren gleichermaßen.",
         "data": {
           "api_key": "API-Schlüssel",
@@ -13,12 +25,19 @@
           "default_target_language": "Wird verwendet, wenn ein Service-Aufruf keine Zielsprache nennt. Vorausgewählt ist die Sprache dieses Home-Assistant-Servers."
         }
       },
+      "auth": {
+        "title": "Bei DeepL anmelden"
+      },
       "reauth_confirm": {
         "title": "DeepL-API-Schlüssel aktualisieren",
         "description": "DeepL hat den API-Schlüssel von {account} abgelehnt. Gib einen gültigen Schlüssel ein, um fortzufahren.",
         "data": {
           "api_key": "API-Schlüssel"
         }
+      },
+      "reauth_oauth": {
+        "title": "Erneut bei DeepL anmelden",
+        "description": "DeepL akzeptiert die Anmeldung von {account} nicht mehr. Wähle Senden, um dich erneut anzumelden."
       }
     },
     "error": {
@@ -28,7 +47,19 @@
     },
     "abort": {
       "already_configured": "Dieses DeepL-Konto ist bereits eingerichtet.",
-      "reauth_successful": "Der API-Schlüssel wurde aktualisiert."
+      "reauth_successful": "Der API-Schlüssel wurde aktualisiert.",
+      "oauth_unsupported": "Die DeepL-Anmeldung konnte nicht vorbereitet werden: {error}",
+      "no_url_available": "Home Assistant braucht eine Adresse, auf die die Anmeldeseite von DeepL dich zurückleiten kann. Richte die externe URL oder Home Assistant Cloud ein oder aktiviere My Home Assistant. [Mehr erfahren]({docs_url})",
+      "translation_failed": "Die Anmeldung hat geklappt, aber eine Testübersetzung ist fehlgeschlagen, daher wurde das Konto nicht hinzugefügt: {error}",
+      "authorize_url_timeout": "Das Erstellen der DeepL-Anmeldeadresse hat zu lange gedauert.",
+      "oauth_error": "Die Antwort von DeepL auf die Anmeldung konnte nicht verstanden werden.",
+      "oauth2_timeout": "DeepL hat nicht rechtzeitig auf die Anmeldung geantwortet.",
+      "oauth_timeout": "DeepL hat nicht rechtzeitig auf die Anmeldung geantwortet.",
+      "user_rejected_authorize": "DeepL hat die Anmeldung nicht erlaubt: {error}",
+      "cannot_connect": "DeepL ist nicht erreichbar. Prüfe die Internetverbindung und versuche es erneut."
+    },
+    "create_entry": {
+      "default": "Erfolgreich bei DeepL angemeldet."
     }
   },
   "options": {

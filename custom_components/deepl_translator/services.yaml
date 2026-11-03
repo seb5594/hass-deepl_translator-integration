@@ -114,7 +114,7 @@ translate_text:
     config_entry_id:
       selector:
         config_entry:
-          integration: deepl_translate
+          integration: deepl_translator
 
 translate_document:
   fields:
@@ -236,7 +236,7 @@ translate_document:
     config_entry_id:
       selector:
         config_entry:
-          integration: deepl_translate
+          integration: deepl_translator
 
 translate_structure:
   fields:
@@ -385,7 +385,7 @@ translate_structure:
     config_entry_id:
       selector:
         config_entry:
-          integration: deepl_translate
+          integration: deepl_translator
 
 get_languages:
   fields:
@@ -398,4 +398,4 @@ get_languages:
     config_entry_id:
       selector:
         config_entry:
-          integration: deepl_translate
+          integration: deepl_translator

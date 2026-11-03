@@ -1,13 +1,23 @@
-"""Constants for the DeepL Translate integration."""
+"""Constants for the DeepL Translator integration."""
 
 from __future__ import annotations
 
-DOMAIN = "deepl_translate"
+DOMAIN = "deepl_translator"
 
 # Config entry data and options
 CONF_DEFAULT_TARGET_LANGUAGE = "default_target_language"
 CONF_UPDATE_INTERVAL = "update_interval"
 CONF_CACHE_SIZE = "cache_size"
+
+# OAuth sign-in (DeepL's hosted MCP server)
+CONF_CLIENT_ID = "client_id"
+CONF_CLIENT_SECRET = "client_secret"
+CONF_AUTHORIZE_URL = "authorize_url"
+CONF_TOKEN_URL = "token_url"
+MCP_URL = "https://mcp.deepl.com/v1/mcp"
+OAUTH_SCOPE = "offline_access"
+OAUTH_CLIENT_NAME = "Home Assistant (DeepL Translator)"
+OAUTH_TIMEOUT = 30
 
 # Usage polling (minutes). The quota changes slowly, so the default is relaxed.
 DEFAULT_UPDATE_INTERVAL = 30
@@ -37,6 +47,13 @@ LANGUAGES_CACHE_SECONDS = 24 * 3600
 UNLIMITED_CHARACTER_LIMIT = 10**12
 
 # Documents
+SUPPORTED_DOCUMENT_EXTENSIONS = frozenset(
+    {
+        ".docx", ".pptx", ".xlsx", ".xlsm", ".pdf", ".htm", ".html", ".txt", ".md", ".markdown",
+        ".xlf", ".xliff", ".srt", ".vtt", ".idml", ".mif", ".xml", ".json", ".yaml", ".yml",
+        ".properties", ".strings", ".resx", ".dita", ".zip", ".odt", ".rtf", ".jpg", ".jpeg", ".png",
+    }
+)
 MAX_DOCUMENT_BYTES = 50 * 1024 * 1024
 DEFAULT_DOCUMENT_TIMEOUT = 600
 MIN_DOCUMENT_TIMEOUT = 30

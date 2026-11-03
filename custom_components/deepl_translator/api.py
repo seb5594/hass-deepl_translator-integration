@@ -126,6 +126,18 @@ class Usage:
 
 
 @dataclass(frozen=True)
+class Capabilities:
+    """What a connection can do, so unsupported requests are refused before anything is sent."""
+
+    documents: bool = True
+    usage: bool = True
+    languages: bool = True
+    tag_handling: bool = True
+    max_text_bytes: int | None = MAX_REQUEST_BYTES
+    max_request_characters: int | None = None
+
+
+@dataclass(frozen=True)
 class Language:
     """A language DeepL can translate from or to."""
 
@@ -160,6 +172,8 @@ def split_into_batches(texts: Sequence[str]) -> Iterator[list[str]]:
 
 class DeepLClient:
     """Talks to the Free or the Pro endpoint, depending on the API key."""
+
+    capabilities = Capabilities()
 
     def __init__(self, session: aiohttp.ClientSession, api_key: str, user_agent: str) -> None:
         self._session = session

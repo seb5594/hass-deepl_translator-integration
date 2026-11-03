@@ -1,7 +1,7 @@
 {
-  "name": "DeepL Translate",
+  "name": "DeepL Translator",
   "homeassistant": "2023.7.0",
   "render_readme": true,
   "zip_release": true,
-  "filename": "deepl_translate.zip"
+  "filename": "deepl_translator.zip"
 }

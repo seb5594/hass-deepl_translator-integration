@@ -12,7 +12,7 @@ from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
 
-TO_REDACT = {CONF_API_KEY, "unique_id"}
+TO_REDACT = {CONF_API_KEY, "unique_id", "token", "access_token", "refresh_token", "client_id", "client_secret"}
 
 
 async def async_get_config_entry_diagnostics(
@@ -22,8 +22,9 @@ async def async_get_config_entry_diagnostics(
     runtime = hass.data[DOMAIN][entry.entry_id]
     return {
         "entry": async_redact_data(entry.as_dict(), TO_REDACT),
-        "free_plan": runtime.client.is_free_plan,
+        "sign_in": "api_key" if runtime.coordinator is not None else "oauth",
+        "capabilities": asdict(runtime.client.capabilities),
         "default_target_language": runtime.default_target_language,
         "cached_translations": len(runtime.cache),
-        "usage": asdict(runtime.coordinator.data),
+        "usage": asdict(runtime.coordinator.data) if runtime.coordinator is not None else None,
     }
