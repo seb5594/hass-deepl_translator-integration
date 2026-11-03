@@ -1,0 +1,61 @@
+name: Compatibility
+
+on:
+  push:
+    branches: [main, dev]
+    paths: ['custom_components/**', '.github/ha_tests/**', 'hacs.json']
+  pull_request:
+    paths: ['custom_components/**', '.github/ha_tests/**', 'hacs.json']
+  schedule:
+    - cron: '41 5 * * 1' # Weekly: a new Home Assistant release can break an integration.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  releases:
+    # Repository secrets are not passed to untrusted fork pull requests.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    outputs:
+      releases: ${{ steps.releases.outputs.releases }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          repository: seb5594/hass-workflows
+          ref: 1451964783bbc3d843cad7bd2f28ccb74223f166
+          token: ${{ secrets.ORCHESTRATION_PAT }}
+          path: .engine
+          persist-credentials: false
+      - id: releases
+        run: echo "releases=$(python .engine/.scripts/ha_matrix.py list)" >> "$GITHUB_OUTPUT"
+
+  test:
+    needs: releases
+    if: needs.releases.outputs.releases != '[]'
+    name: Home Assistant ${{ matrix.release }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        release: ${{ fromJSON(needs.releases.outputs.releases) }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          repository: seb5594/hass-workflows
+          ref: 1451964783bbc3d843cad7bd2f28ccb74223f166
+          token: ${{ secrets.ORCHESTRATION_PAT }}
+          path: .engine
+          persist-credentials: false
+      - uses: ./.engine/.actions/setup-python
+        with:
+          packages: uv
+      - run: python .engine/.scripts/ha_matrix.py run "${{ matrix.release }}"

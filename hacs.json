@@ -1,0 +1,7 @@
+{
+  "name": "Example Integration",
+  "homeassistant": "2024.4.0",
+  "render_readme": true,
+  "zip_release": true,
+  "filename": "example_integration.zip"
+}
