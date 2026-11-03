@@ -333,5 +333,140 @@ last: Final line
         self.assertEqual(data["title"], "Hello")
 
 
+class Preflight(unittest.TestCase):
+    def setUp(self):
+        self.preflight = load_module("preflight")
+
+    def refused(self, call, *args, **kwargs):
+        with self.assertRaises(self.preflight.PreflightError) as context:
+            call(*args, **kwargs)
+        message = str(context.exception)
+        self.assertTrue(message.endswith("Nothing was sent to DeepL."), message)
+        return message
+
+    def test_quota_has_to_cover_the_whole_request(self):
+        check = self.preflight.check_quota
+        check(100, 100)
+        check(100, None)  # accounts without a limit
+        message = self.refused(check, 1500, 1000, "2026-12-01T00:00:00Z")
+        self.assertIn("1,500", message)
+        self.assertIn("1,000", message)
+        self.assertIn("2026-12-01", message)
+
+    def test_unknown_languages_come_with_suggestions(self):
+        check = self.preflight.check_language
+        check("DE", {"DE": "German"}, "target")
+        check("XX", None, "target")  # no list to compare with: let DeepL decide
+        message = self.refused(check, "DEU", {"DE": 1, "FR": 2, "EN-GB": 3}, "target")
+        self.assertIn("into 'DEU'", message)
+        self.assertIn("Did you mean DE", message)
+        self.assertIn("from 'ZZ'", self.refused(check, "ZZ", {"DE": 1}, "source"))
+
+    def test_only_strict_formality_depends_on_language_support(self):
+        check = self.preflight.check_formality
+        check("default", False, "EN-GB")
+        check("prefer_more", False, "EN-GB")
+        check("more", True, "DE")
+        check("more", None, "XX")
+        self.assertIn("'EN-GB'", self.refused(check, "less", False, "EN-GB"))
+
+    def test_texts_have_to_fit_one_request(self):
+        check = self.preflight.check_text_sizes
+        check(["short"], max_bytes=100, max_characters=10)
+        self.refused(check, ["x" * 101], max_bytes=100)
+        self.refused(check, ["ä" * 60], max_bytes=100)  # bytes, not characters
+        self.refused(check, ["x" * 11], max_characters=10)
+
+    def test_documents_need_a_supported_extension(self):
+        check = self.preflight.check_document_extension
+        check(".DOCX", {".docx"})
+        self.assertIn(".exe", self.refused(check, ".exe", {".docx", ".pdf"}))
+        self.assertIn("no extension", self.refused(check, "", {".docx"}))
+
+
+class McpProtocol(unittest.TestCase):
+    def setUp(self):
+        self.protocol = load_module("protocol")
+
+    SCHEMA = {
+        "type": "object",
+        "properties": {
+            "text": {"type": "array", "items": {"type": "string"}},
+            "targetLangCode": {"type": "string"},
+            "sourceLangCode": {"type": "string"},
+            "formality": {"type": "string"},
+            "context": {"type": "string"},
+        },
+    }
+
+    def test_arguments_are_found_by_role_whatever_the_spelling(self):
+        mapping = self.protocol.resolve_arguments(self.SCHEMA)
+        self.assertEqual(mapping["text"], ("text", True))
+        self.assertEqual(mapping["target"], ("targetLangCode", False))
+        self.assertNotIn("glossary", mapping)
+        other = self.protocol.resolve_arguments(
+            {"properties": {"Texts": {"type": "array"}, "target_languages": {"type": "array"}, "glossary-id": {}}}
+        )
+        self.assertEqual((other["text"], other["target"], other["glossary"]), (("Texts", True), ("target_languages", True), ("glossary-id", False)))
+
+    def test_call_arguments_follow_the_schema(self):
+        mapping = self.protocol.resolve_arguments(self.SCHEMA)
+        arguments = self.protocol.build_arguments(
+            mapping, ["a", "b"], "DE", source="EN", formality=None, context="ctx", glossary_id="g1"
+        )
+        self.assertEqual(
+            arguments, {"text": ["a", "b"], "targetLangCode": "DE", "sourceLangCode": "EN", "context": "ctx"}
+        )
+        single = self.protocol.resolve_arguments({"properties": {"text": {"type": "string"}, "target_lang": {"type": "array"}}})
+        self.assertEqual(
+            self.protocol.build_arguments(single, ["only"], "FR"), {"text": "only", "target_lang": ["FR"]}
+        )
+
+    def test_results_are_understood_in_the_shapes_servers_use(self):
+        extract = self.protocol.extract_translations
+        self.assertEqual(extract({"structuredContent": {"translations": [{"text": "Hallo", "detected_source_language": "EN"}]}}), [("Hallo", "EN")])
+        self.assertEqual(extract({"content": [{"type": "text", "text": '[{"text": "Eins"}, {"text": "Zwei"}]'}]}), [("Eins", None), ("Zwei", None)])
+        self.assertEqual(extract({"content": [{"type": "text", "text": "Plain answer"}]}), [("Plain answer", None)])
+        self.assertEqual(extract({"content": [{"type": "text", "text": '{"translatedText": "Bonjour"}'}]}), [("Bonjour", None)])
+        with self.assertRaisesRegex(ValueError, "Quota exceeded"):
+            extract({"isError": True, "content": [{"type": "text", "text": "Quota exceeded"}]})
+        with self.assertRaises(ValueError):
+            extract({"content": []})
+
+    def test_answers_are_read_from_json_and_event_streams(self):
+        parse = self.protocol.parse_response_body
+        self.assertEqual(parse('{"jsonrpc": "2.0", "id": 3, "result": {}}', "application/json", 3)["id"], 3)
+        stream = 'event: message\ndata: {"jsonrpc":"2.0","method":"notifications/progress"}\n\nevent: message\ndata: {"jsonrpc":"2.0","id":7,"result":{"ok":true}}\n\n'
+        self.assertEqual(parse(stream, "text/event-stream; charset=utf-8", 7)["result"], {"ok": True})
+        with self.assertRaises(ValueError):
+            parse(stream, "text/event-stream", 8)
+
+    def test_requests_are_grouped_by_the_limits_of_one_call(self):
+        split = self.protocol.split_by_characters
+        self.assertEqual(split(["a" * 3000, "b" * 3000, "c"], 5000, 50), [["a" * 3000], ["b" * 3000, "c"]])
+        self.assertEqual(split(["a", "b", "c"], 5000, 2), [["a", "b"], ["c"]])
+        self.assertEqual(split([], 5000, 50), [])
+
+    def test_free_accounts_are_recognised_by_their_missing_glossary_tools(self):
+        infer = self.protocol.infer_request_characters
+        self.assertEqual(infer(["translate-text", "rephrase-text"]), 5000)
+        self.assertEqual(infer(["translate-text", "list-glossaries"]), 128000)
+
+    def test_pkce_matches_the_example_of_rfc_7636(self):
+        challenge = self.protocol.compute_code_challenge("dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk")
+        self.assertEqual(challenge, "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM")
+        verifier = self.protocol.generate_code_verifier()
+        self.assertTrue(43 <= len(verifier) <= 128)
+
+    def test_discovery_and_registration_helpers(self):
+        header = 'Bearer resource_metadata="https://mcp.example/.well-known/oauth-protected-resource"'
+        self.assertEqual(self.protocol.resource_metadata_url(header), "https://mcp.example/.well-known/oauth-protected-resource")
+        self.assertIsNone(self.protocol.resource_metadata_url("Bearer"))
+        self.assertIsNone(self.protocol.resource_metadata_url(None))
+        payload = self.protocol.registration_payload("Name", "https://my.example/redirect", "offline_access")
+        self.assertEqual(payload["token_endpoint_auth_method"], "none")
+        self.assertEqual(payload["redirect_uris"], ["https://my.example/redirect"])
+
+
 if __name__ == "__main__":
     unittest.main()

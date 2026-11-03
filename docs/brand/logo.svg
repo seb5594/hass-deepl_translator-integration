@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 512">
+  <g transform="translate(16 16) scale(0.9375)">
+  <path d="M256 34c-10 0-20 3-28 10L38 211c-9 8-14 18-14 30 0 22 18 40 40 40h22v155c0 25 20 45 45 45h250c25 0 45-20 45-45V281h22c22 0 40-18 40-40 0-12-5-22-14-30L284 44c-8-7-18-10-28-10z" fill="#18BCF2"/>
+  <g font-family="'DejaVu Sans', 'Helvetica Neue', Arial, sans-serif" font-weight="700" text-anchor="middle">
+    <path d="M132 212h132a34 34 0 0 1 34 34v52a34 34 0 0 1-34 34H182l-48 38 12-38h-14a34 34 0 0 1-34-34v-52a34 34 0 0 1 34-34z" fill="#FFFFFF"/>
+    <text x="184" y="300" font-size="80" fill="#0F2B46">A</text>
+    <path d="M254 262h134a34 34 0 0 1 34 34v52a34 34 0 0 1-34 34h-14l12 38-48-38H254a34 34 0 0 1-34-34v-52a34 34 0 0 1 34-34z" fill="#0F2B46" stroke="#18BCF2" stroke-width="10" paint-order="stroke"/>
+    <text x="321" y="352" font-size="86" fill="#FFFFFF">D</text>
+  </g>
+  </g>
+  <g font-family="'DejaVu Sans', 'Helvetica Neue', Arial, sans-serif">
+    <text x="520" y="262" font-size="136" font-weight="700" fill="#0F2B46">DeepL</text>
+    <text x="524" y="360" font-size="82" font-weight="600" fill="#1A7FB0">Translator</text>
+    <text x="526" y="424" font-size="40" fill="#0F2B46" opacity="0.7">for Home Assistant</text>
+  </g>
+</svg>

@@ -3,6 +3,18 @@
     "step": {
       "user": {
         "title": "Connect DeepL",
+        "description": "Choose how Home Assistant signs in to DeepL.",
+        "menu_options": {
+          "api_key": "API key",
+          "oauth": "Sign in at DeepL (OAuth)"
+        },
+        "menu_option_descriptions": {
+          "api_key": "Full feature set: text, documents, structured data and the usage sensors. Works with free (`:fx`) and Pro keys.",
+          "oauth": "No key to copy: you log in at DeepL. Translates text and structured data only, without usage sensors or documents. Experimental."
+        }
+      },
+      "api_key": {
+        "title": "Connect DeepL with an API key",
         "description": "Create an API key in your DeepL account under *Account > Keys and limits*. Keys of the free plan end in `:fx`; free and Pro keys both work.",
         "data": {
           "api_key": "API key",
@@ -13,12 +25,19 @@
           "default_target_language": "Used whenever a service call does not name a target language. Preselected with the language of this Home Assistant server."
         }
       },
+      "auth": {
+        "title": "Sign in to DeepL"
+      },
       "reauth_confirm": {
         "title": "Update the DeepL API key",
         "description": "DeepL rejected the API key of {account}. Enter a valid key to continue.",
         "data": {
           "api_key": "API key"
         }
+      },
+      "reauth_oauth": {
+        "title": "Sign in to DeepL again",
+        "description": "DeepL no longer accepts the sign-in of {account}. Select Submit to log in again."
       }
     },
     "error": {
@@ -28,7 +47,19 @@
     },
     "abort": {
       "already_configured": "This DeepL account is already set up.",
-      "reauth_successful": "The API key was updated."
+      "reauth_successful": "The API key was updated.",
+      "oauth_unsupported": "The DeepL sign-in could not be prepared: {error}",
+      "no_url_available": "Home Assistant needs an address that DeepL's login page can send you back to. Set up the external URL or Home Assistant Cloud, or enable My Home Assistant. [Learn more]({docs_url})",
+      "translation_failed": "You signed in, but a test translation failed, so the account was not added: {error}",
+      "authorize_url_timeout": "Creating the DeepL login address took too long.",
+      "oauth_error": "DeepL's answer to the sign-in could not be understood.",
+      "oauth2_timeout": "DeepL did not answer the sign-in in time.",
+      "oauth_timeout": "DeepL did not answer the sign-in in time.",
+      "user_rejected_authorize": "DeepL did not allow the sign-in: {error}",
+      "cannot_connect": "DeepL could not be reached. Check the internet connection and try again."
+    },
+    "create_entry": {
+      "default": "Successfully signed in to DeepL."
     }
   },
   "options": {

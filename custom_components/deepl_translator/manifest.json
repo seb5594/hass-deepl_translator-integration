@@ -1,0 +1,13 @@
+{
+  "domain": "deepl_translator",
+  "name": "DeepL Translator",
+  "codeowners": ["@seb5594"],
+  "config_flow": true,
+  "documentation": "https://github.com/seb5594/hass-deepl_translator-integration",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/seb5594/hass-deepl_translator-integration/issues",
+  "dependencies": ["http"],
+  "requirements": [],
+  "version": "1.0.0b2"
+}

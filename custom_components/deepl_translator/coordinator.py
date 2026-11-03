@@ -10,7 +10,8 @@ from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.debounce import Debouncer
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .api import DeepLAuthError, DeepLClient, DeepLError, Usage
+from .api import DeepLAuthError, DeepLError, Usage
+from .backend import TranslationBackend
 from .const import DOMAIN, USAGE_REFRESH_COOLDOWN
 
 _LOGGER = logging.getLogger(__name__)
@@ -19,7 +20,7 @@ _LOGGER = logging.getLogger(__name__)
 class DeepLUsageCoordinator(DataUpdateCoordinator[Usage]):
     """Polls the usage endpoint, which is free of charge."""
 
-    def __init__(self, hass: HomeAssistant, client: DeepLClient, interval_minutes: int) -> None:
+    def __init__(self, hass: HomeAssistant, client: TranslationBackend, interval_minutes: int) -> None:
         super().__init__(
             hass,
             _LOGGER,

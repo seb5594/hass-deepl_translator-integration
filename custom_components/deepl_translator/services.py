@@ -1,4 +1,4 @@
-"""Services of the DeepL Translate integration.
+"""Services of the DeepL Translator integration.
 
 Every service can hand its result back (``response_variable`` in automations and scripts,
 ``return_response`` for other integrations), which is what makes them usable as a
@@ -7,7 +7,7 @@ translation backend by anything else running in Home Assistant.
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any
@@ -24,7 +24,7 @@ try:
 except ImportError:  # Home Assistant older than 2023.12
     ServiceValidationError = HomeAssistantError
 
-from .api import DeepLRequestError, DeepLError, TranslateOptions
+from .api import DeepLAuthError, DeepLError, DeepLRequestError, TranslateOptions, Translation
 from .const import (
     ATTR_CONFIG_ENTRY_ID,
     ATTR_CONTEXT,
@@ -59,12 +59,18 @@ from .const import (
     SERVICE_TRANSLATE_TEXT,
     STRUCTURE_FORMATS,
     STRUCTURE_SUFFIXES,
+    SUPPORTED_DOCUMENT_EXTENSIONS,
     TAG_HANDLING_VALUES,
 )
-from . import placeholders, structured
+from . import placeholders, preflight, structured
 from .data import DeepLRuntimeData
-from .languages import normalize_source_language, normalize_target_language
-from .translator import async_translate_texts
+from .languages import (
+    SOURCE_LANGUAGES,
+    TARGET_LANGUAGES,
+    normalize_source_language,
+    normalize_target_language,
+)
+from .translator import async_run_plan, plan_translation
 
 _ENTRY_FIELD = {vol.Optional(ATTR_CONFIG_ENTRY_ID): cv.string}
 
@@ -148,14 +154,7 @@ class DeepLServices:
         """Translate one or more texts."""
         runtime = self._runtime(call.data.get(ATTR_CONFIG_ENTRY_ID))
         options = self._options(runtime, call.data)
-        try:
-            translations, billed = await async_translate_texts(
-                runtime.client, runtime.cache, call.data[ATTR_TEXT], options
-            )
-        except DeepLError as err:
-            raise _as_home_assistant_error(err) from err
-        if billed:
-            await runtime.coordinator.async_request_refresh()
+        translations = await self._translate(runtime, call.data[ATTR_TEXT], options)
         return {
             "text": translations[0].text,
             "translations": [
@@ -169,22 +168,32 @@ class DeepLServices:
         """Translate a file and store the result next to it or at the requested path."""
         runtime = self._runtime(call.data.get(ATTR_CONFIG_ENTRY_ID))
         options = self._options(runtime, call.data)
+        if not runtime.client.capabilities.documents:
+            raise ServiceValidationError(
+                "Document translation needs an account that signed in with an API key; "
+                f"accounts that signed in with OAuth can only translate text. {preflight.NOTHING_SENT}"
+            )
         input_file = Path(self._hass.config.path(call.data[ATTR_INPUT_FILE]))
         output_file = _output_path(
             self._hass, input_file, options.target_lang, call.data.get(ATTR_OUTPUT_FILE)
         )
+        try:
+            preflight.check_document_extension(input_file.suffix, SUPPORTED_DOCUMENT_EXTENSIONS)
+        except preflight.PreflightError as err:
+            raise ServiceValidationError(str(err)) from err
 
         content = await self._hass.async_add_executor_job(
             _read_input, self._hass, input_file, output_file, call.data[ATTR_OVERWRITE]
         )
+        await self._preflight_request(runtime, options, needed_characters=1)
         try:
             document = await runtime.client.async_translate_document(
                 content, input_file.name, options, call.data[ATTR_TIMEOUT]
             )
         except DeepLError as err:
-            raise _as_home_assistant_error(err) from err
+            raise self._failure(runtime, err) from err
         await self._hass.async_add_executor_job(_write_output, output_file, document.content)
-        await runtime.coordinator.async_request_refresh()
+        await self._refresh_usage(runtime)
         return {
             "output_file": str(output_file),
             "target_language": options.target_lang,
@@ -236,6 +245,9 @@ class DeepLServices:
                 ],
                 "characters": sum(len(slot.text) for slot in scan.slots),
                 "skipped_strings": scan.skipped,
+                "characters_remaining": (
+                    runtime.coordinator.data.characters_remaining if runtime.coordinator else None
+                ),
             }
 
         translations = await self._translate_slots(
@@ -268,27 +280,122 @@ class DeepLServices:
         if not texts:
             return []
         protect = protect_placeholders and any(placeholders.contains_placeholder(text) for text in texts)
+        measure = len
         if protect:
+            if not runtime.client.capabilities.tag_handling:
+                raise ServiceValidationError(
+                    "These texts contain placeholders, and protecting them needs an account that "
+                    f"signed in with an API key. Set '{ATTR_PROTECT_PLACEHOLDERS}' to false to "
+                    f"translate them as they are. {preflight.NOTHING_SENT}"
+                )
             texts = [placeholders.protect(text) for text in texts]
             options = replace(options, tag_handling="xml", ignore_tags=(placeholders.IGNORED_TAG,))
-        try:
-            translations, billed = await async_translate_texts(
-                runtime.client, runtime.cache, texts, options
-            )
-        except DeepLError as err:
-            raise _as_home_assistant_error(err) from err
-        if billed:
-            await runtime.coordinator.async_request_refresh()
+            measure = lambda text: len(placeholders.restore(text))  # tags are not billed
+        translations = await self._translate(runtime, texts, options, measure)
         results = [item.text for item in translations]
         return [placeholders.restore(text) for text in results] if protect else results
+
+    async def _translate(
+        self,
+        runtime: DeepLRuntimeData,
+        texts: Sequence[str],
+        options: TranslateOptions,
+        measure: Callable[[str], int] = len,
+    ) -> list[Translation]:
+        """Check the whole request, then translate it: either everything is sent, or nothing."""
+        plan = plan_translation(runtime.cache, texts, options)
+        if plan.missing:
+            capabilities = runtime.client.capabilities
+            try:
+                preflight.check_text_sizes(
+                    plan.pending_texts, capabilities.max_text_bytes, capabilities.max_request_characters
+                )
+            except preflight.PreflightError as err:
+                raise ServiceValidationError(str(err)) from err
+            await self._preflight_request(runtime, options, plan.characters(measure))
+        try:
+            translations, billed = await async_run_plan(runtime.client, runtime.cache, plan)
+        except DeepLError as err:
+            raise self._failure(runtime, err) from err
+        if billed:
+            await self._refresh_usage(runtime)
+        return translations
+
+    async def _preflight_request(
+        self, runtime: DeepLRuntimeData, options: TranslateOptions, needed_characters: int
+    ) -> None:
+        """Languages, formality, markup support and quota; raises before anything is sent."""
+        capabilities = runtime.client.capabilities
+        try:
+            if options.tag_handling != "none" and not capabilities.tag_handling:
+                raise preflight.PreflightError(
+                    "Markup handling needs an account that signed in with an API key. "
+                    f"{preflight.NOTHING_SENT}"
+                )
+            await self._check_languages(runtime, options)
+            await self._check_quota(runtime, needed_characters)
+        except preflight.PreflightError as err:
+            raise ServiceValidationError(str(err)) from err
+
+    async def _check_languages(self, runtime: DeepLRuntimeData, options: TranslateOptions) -> None:
+        """Compare the languages with what DeepL offers; if that cannot be read, let DeepL decide."""
+        if not runtime.client.capabilities.languages:
+            return
+        try:
+            targets = {item.code.upper(): item for item in await runtime.client.async_get_languages("target")}
+            sources = (
+                {item.code.upper() for item in await runtime.client.async_get_languages("source")}
+                if options.source_lang
+                else None
+            )
+        except DeepLError:
+            return
+        preflight.check_language(options.target_lang, targets, "target")
+        if sources is not None:
+            preflight.check_language(options.source_lang, sources, "source")
+        preflight.check_formality(
+            options.formality, targets[options.target_lang].supports_formality, options.target_lang
+        )
+
+    async def _check_quota(self, runtime: DeepLRuntimeData, needed: int) -> None:
+        """Refuse a request the remaining quota cannot cover completely."""
+        coordinator = runtime.coordinator
+        if coordinator is None or coordinator.data is None or needed <= 0:
+            return
+        remaining = coordinator.data.characters_remaining
+        if remaining is None or needed <= remaining:
+            return
+        # The figure may be stale, and reading the usage costs nothing: look again before refusing.
+        await coordinator.async_refresh()
+        if coordinator.last_update_success:
+            usage = coordinator.data
+            preflight.check_quota(needed, usage.characters_remaining, usage.end_time)
+
+    async def _refresh_usage(self, runtime: DeepLRuntimeData) -> None:
+        if runtime.coordinator is not None:
+            await runtime.coordinator.async_request_refresh()
+
+    def _failure(self, runtime: DeepLRuntimeData, err: DeepLError) -> HomeAssistantError:
+        """Turn a DeepL error into a service error; a rejected sign-in also asks for a new one."""
+        if isinstance(err, DeepLAuthError):
+            runtime.entry.async_start_reauth(self._hass)
+        return _as_home_assistant_error(err)
 
     async def get_languages(self, call: ServiceCall) -> dict[str, Any]:
         """List the languages DeepL supports."""
         runtime = self._runtime(call.data.get(ATTR_CONFIG_ENTRY_ID))
+        if not runtime.client.capabilities.languages:
+            table = TARGET_LANGUAGES if call.data[ATTR_LANGUAGE_TYPE] == "target" else SOURCE_LANGUAGES
+            return {
+                "languages": [
+                    {"code": code, "name": name, "supports_formality": None}
+                    for code, name in table.items()
+                ]
+            }
         try:
             languages = await runtime.client.async_get_languages(call.data[ATTR_LANGUAGE_TYPE])
         except DeepLError as err:
-            raise _as_home_assistant_error(err) from err
+            raise self._failure(runtime, err) from err
         return {
             "languages": [
                 {

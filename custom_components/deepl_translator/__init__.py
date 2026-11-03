@@ -1,14 +1,15 @@
-"""DeepL Translate: the DeepL translation service as Home Assistant services and sensors."""
+"""DeepL Translator: the DeepL translation service as Home Assistant services and sensors."""
 
 from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_API_KEY, Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
-from .api import Translation
+from .api import DeepLAuthError, DeepLError, Translation
 from .cache import TranslationCache
 from .const import (
     CONF_CACHE_SIZE,
@@ -21,9 +22,8 @@ from .const import (
 from .coordinator import DeepLUsageCoordinator
 from .data import DeepLRuntimeData, async_create_client
 from .languages import target_from_home_assistant_language
+from .oauth import async_create_oauth_backend
 from .services import DeepLServices
-
-PLATFORMS = [Platform.SENSOR]
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
@@ -35,15 +35,29 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Connect to DeepL with the stored API key."""
+    """Connect to DeepL with the stored API key or OAuth sign-in."""
     options = entry.options
-    client = await async_create_client(hass, entry.data[CONF_API_KEY])
-    coordinator = DeepLUsageCoordinator(
-        hass, client, options.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL)
-    )
-    await coordinator.async_config_entry_first_refresh()
+    coordinator: DeepLUsageCoordinator | None = None
+    platforms: list[Platform] = []
+
+    if CONF_API_KEY in entry.data:
+        client = await async_create_client(hass, entry.data[CONF_API_KEY])
+        coordinator = DeepLUsageCoordinator(
+            hass, client, options.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL)
+        )
+        await coordinator.async_config_entry_first_refresh()
+        platforms = [Platform.SENSOR]
+    else:
+        client = await async_create_oauth_backend(hass, entry)
+        try:
+            await client.async_connect()
+        except DeepLAuthError as err:
+            raise ConfigEntryAuthFailed(str(err)) from err
+        except DeepLError as err:
+            raise ConfigEntryNotReady(str(err)) from err
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = DeepLRuntimeData(
+        entry=entry,
         client=client,
         coordinator=coordinator,
         cache=TranslationCache[Translation](options.get(CONF_CACHE_SIZE, DEFAULT_CACHE_SIZE)),
@@ -53,15 +67,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         ),
     )
     entry.async_on_unload(entry.add_update_listener(_async_reload_entry))
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    if platforms:
+        await hass.config_entries.async_forward_entry_setups(entry, platforms)
     return True
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload an account."""
-    if unloaded := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
+    platforms = [Platform.SENSOR] if CONF_API_KEY in entry.data else []
+    if unloaded := await hass.config_entries.async_unload_platforms(entry, platforms):
         runtime = hass.data[DOMAIN].pop(entry.entry_id)
-        await runtime.coordinator.async_shutdown()
+        if runtime.coordinator is not None:
+            await runtime.coordinator.async_shutdown()
     return unloaded
 
 

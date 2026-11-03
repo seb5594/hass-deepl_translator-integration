@@ -1,15 +1,24 @@
-"""Config flow for the DeepL Translate integration."""
+"""Config flow for the DeepL Translator integration."""
 
 from __future__ import annotations
 
 import hashlib
+import logging
 from typing import Any
 
 import voluptuous as vol
 
-from homeassistant.config_entries import ConfigEntry, ConfigEntryState, ConfigFlow, OptionsFlow
+from homeassistant.config_entries import (
+    SOURCE_REAUTH,
+    ConfigEntry,
+    ConfigEntryState,
+    OptionsFlow,
+)
 from homeassistant.const import CONF_API_KEY
 from homeassistant.core import callback
+from homeassistant.helpers import config_entry_oauth2_flow
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.network import NoURLAvailableError
 from homeassistant.helpers.selector import (
     NumberSelector,
     NumberSelectorConfig,
@@ -28,7 +37,7 @@ try:
 except ImportError:  # Home Assistant older than 2024.4
     from homeassistant.data_entry_flow import FlowResult as ConfigFlowResult
 
-from .api import DeepLAuthError, DeepLError
+from .api import DeepLAuthError, DeepLConnectionError, DeepLError, TranslateOptions
 from .const import (
     CONF_CACHE_SIZE,
     CONF_DEFAULT_TARGET_LANGUAGE,
@@ -41,7 +50,15 @@ from .const import (
     MAX_UPDATE_INTERVAL,
     MIN_UPDATE_INTERVAL,
 )
-from .data import async_create_client
+from .data import async_create_client, async_user_agent
+from .mcp_client import DeepLMcpBackend
+from .oauth import (
+    DeepLOAuth2Implementation,
+    RegisteredClient,
+    async_discover,
+    async_register_client,
+    entry_client_data,
+)
 from .languages import (
     TARGET_LANGUAGES,
     normalize_target_language,
@@ -81,16 +98,30 @@ def _api_key_schema(suggested_key: str | None = None) -> dict[Any, Any]:
     }
 
 
-class DeepLConfigFlow(ConfigFlow, domain=DOMAIN):
-    """Set up a DeepL account with its API key."""
+class DeepLConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, domain=DOMAIN):
+    """Set up a DeepL account with an API key or by signing in at DeepL."""
 
+    DOMAIN = DOMAIN
     VERSION = 1
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._oauth_client: dict[str, Any] = {}
+
+    @property
+    def logger(self) -> logging.Logger:
+        """Logger of the OAuth helper."""
+        return logging.getLogger(__name__)
 
     @staticmethod
     @callback
     def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
         """Offer the options of an existing entry."""
         return DeepLOptionsFlow()
+
+    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Let the user choose how to sign in."""
+        return self.async_show_menu(step_id="user", menu_options=["api_key", "oauth"])
 
     async def _async_check_key(self, api_key: str) -> str | None:
         """Return an error key when the API key does not work."""
@@ -105,7 +136,7 @@ class DeepLConfigFlow(ConfigFlow, domain=DOMAIN):
             return "unknown"
         return None
 
-    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+    async def async_step_api_key(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Ask for the API key and the language to translate into by default."""
         errors: dict[str, str] = {}
         suggested_key = None
@@ -136,7 +167,61 @@ class DeepLConfigFlow(ConfigFlow, domain=DOMAIN):
                 ): _language_selector(),
             }
         )
-        return self.async_show_form(step_id="user", data_schema=schema, errors=errors)
+        return self.async_show_form(step_id="api_key", data_schema=schema, errors=errors)
+
+    async def async_step_oauth(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        """Register at DeepL and send the user there to log in."""
+        session = async_get_clientsession(self.hass)
+        try:
+            endpoints = await async_discover(session)
+            redirect_uri = DeepLOAuth2Implementation(
+                self.hass, DOMAIN, RegisteredClient(""), endpoints
+            ).redirect_uri
+            client = await async_register_client(session, endpoints, redirect_uri)
+        except DeepLConnectionError:
+            return self.async_abort(reason="cannot_connect")
+        except DeepLError as err:
+            return self.async_abort(reason="oauth_unsupported", description_placeholders={"error": str(err)})
+        except (NoURLAvailableError, RuntimeError):
+            return self.async_abort(
+                reason="no_url_available",
+                description_placeholders={"docs_url": "https://www.home-assistant.io/more-info/no-url-available"},
+            )
+        implementation_id = f"{DOMAIN}_{hashlib.sha256(client.client_id.encode()).hexdigest()[:12]}"
+        self.flow_impl = DeepLOAuth2Implementation(self.hass, implementation_id, client, endpoints)
+        self._oauth_client = entry_client_data(implementation_id, client, endpoints)
+        return await self.async_step_auth()
+
+    async def async_oauth_create_entry(self, data: dict[str, Any]) -> ConfigFlowResult:
+        """Check that translating works with the new sign-in, then keep it."""
+        data = {**data, **self._oauth_client}
+        access_token = data["token"]["access_token"]
+
+        async def get_token() -> str:
+            return access_token
+
+        backend = DeepLMcpBackend(
+            async_get_clientsession(self.hass), get_token, await async_user_agent(self.hass)
+        )
+        target = target_from_home_assistant_language(self.hass.config.language)
+        try:
+            await backend.async_connect()
+            # One word proves the whole chain before the entry is created.
+            await backend.async_translate(["Hello"], TranslateOptions(target_lang=target))
+        except DeepLError as err:
+            return self.async_abort(reason="translation_failed", description_placeholders={"error": str(err)})
+
+        if self.source == SOURCE_REAUTH:
+            entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
+            self.hass.config_entries.async_update_entry(entry, data={**entry.data, **data})
+            if entry.state is not ConfigEntryState.LOADED:
+                await self.hass.config_entries.async_reload(entry.entry_id)
+            return self.async_abort(reason="reauth_successful")
+
+        await self.async_set_unique_id(data["client_id"])
+        return self.async_create_entry(
+            title="DeepL (OAuth)", data=data, options={CONF_DEFAULT_TARGET_LANGUAGE: target}
+        )
 
     async def async_step_reauth(self, entry_data: Any) -> ConfigFlowResult:
         """Start when DeepL rejects the stored key."""
@@ -147,6 +232,8 @@ class DeepLConfigFlow(ConfigFlow, domain=DOMAIN):
     ) -> ConfigFlowResult:
         """Ask for a new key."""
         entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
+        if CONF_API_KEY not in entry.data:
+            return await self.async_step_reauth_oauth()
         errors: dict[str, str] = {}
         if user_input is not None:
             api_key = user_input[CONF_API_KEY].strip()
@@ -172,25 +259,38 @@ class DeepLConfigFlow(ConfigFlow, domain=DOMAIN):
         )
 
 
+    async def async_step_reauth_oauth(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Ask the user to sign in at DeepL again."""
+        if user_input is None:
+            entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
+            return self.async_show_form(
+                step_id="reauth_oauth", description_placeholders={"account": entry.title}
+            )
+        return await self.async_step_oauth()
+
+
 class DeepLOptionsFlow(OptionsFlow):
     """Change the defaults of an account."""
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Show the options."""
-        if user_input is not None:
-            return self.async_create_entry(
-                title="",
-                data={
-                    CONF_DEFAULT_TARGET_LANGUAGE: normalize_target_language(
-                        user_input[CONF_DEFAULT_TARGET_LANGUAGE]
-                    ),
-                    CONF_UPDATE_INTERVAL: int(user_input[CONF_UPDATE_INTERVAL]),
-                    CONF_CACHE_SIZE: int(user_input[CONF_CACHE_SIZE]),
-                },
-            )
-
         # The entry id is the flow's handler in every Home Assistant version.
-        options = self.hass.config_entries.async_get_entry(self.handler).options
+        entry = self.hass.config_entries.async_get_entry(self.handler)
+        has_usage = CONF_API_KEY in entry.data  # accounts signed in with OAuth get no usage figures
+        if user_input is not None:
+            data = {
+                CONF_DEFAULT_TARGET_LANGUAGE: normalize_target_language(
+                    user_input[CONF_DEFAULT_TARGET_LANGUAGE]
+                ),
+                CONF_CACHE_SIZE: int(user_input[CONF_CACHE_SIZE]),
+            }
+            if has_usage:
+                data[CONF_UPDATE_INTERVAL] = int(user_input[CONF_UPDATE_INTERVAL])
+            return self.async_create_entry(title="", data=data)
+
+        options = entry.options
         schema = vol.Schema(
             {
                 vol.Required(
@@ -200,17 +300,23 @@ class DeepLOptionsFlow(OptionsFlow):
                         target_from_home_assistant_language(self.hass.config.language),
                     ),
                 ): _language_selector(),
-                vol.Required(
-                    CONF_UPDATE_INTERVAL,
-                    default=options.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL),
-                ): NumberSelector(
-                    NumberSelectorConfig(
-                        min=MIN_UPDATE_INTERVAL,
-                        max=MAX_UPDATE_INTERVAL,
-                        step=1,
-                        mode=NumberSelectorMode.BOX,
-                        unit_of_measurement="min",
-                    )
+                **(
+                    {
+                        vol.Required(
+                            CONF_UPDATE_INTERVAL,
+                            default=options.get(CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL),
+                        ): NumberSelector(
+                            NumberSelectorConfig(
+                                min=MIN_UPDATE_INTERVAL,
+                                max=MAX_UPDATE_INTERVAL,
+                                step=1,
+                                mode=NumberSelectorMode.BOX,
+                                unit_of_measurement="min",
+                            )
+                        )
+                    }
+                    if has_usage
+                    else {}
                 ),
                 vol.Required(
                     CONF_CACHE_SIZE,
