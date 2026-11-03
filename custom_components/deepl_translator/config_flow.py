@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import hashlib
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import voluptuous as vol
 
 from homeassistant.config_entries import (
+    SOURCE_IGNORE,
+    SOURCE_IMPORT,
     SOURCE_REAUTH,
     ConfigEntry,
     ConfigEntryState,
@@ -17,6 +19,7 @@ from homeassistant.config_entries import (
 from homeassistant.const import CONF_API_KEY
 from homeassistant.core import callback
 from homeassistant.helpers import config_entry_oauth2_flow
+from homeassistant.helpers import instance_id
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.network import NoURLAvailableError
 from homeassistant.helpers.selector import (
@@ -42,6 +45,7 @@ from .const import (
     CONF_CACHE_SIZE,
     CONF_DEFAULT_TARGET_LANGUAGE,
     CONF_UPDATE_INTERVAL,
+    CONF_YAML_MANAGED,
     DEFAULT_CACHE_SIZE,
     DEFAULT_UPDATE_INTERVAL,
     DOMAIN,
@@ -64,6 +68,10 @@ from .languages import (
     normalize_target_language,
     target_from_home_assistant_language,
 )
+from .yaml_config import YAML_ACCOUNT_SCHEMA
+
+if TYPE_CHECKING:
+    from homeassistant.components.zeroconf import ZeroconfServiceInfo
 
 
 def _unique_id(api_key: str) -> str:
@@ -123,6 +131,74 @@ class DeepLConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, domain
         """Let the user choose how to sign in."""
         return self.async_show_menu(step_id="user", menu_options=["api_key", "oauth"])
 
+    async def async_step_zeroconf(self, discovery_info: ZeroconfServiceInfo) -> ConfigFlowResult:
+        """Suggest setup when HA sees this installation's own mDNS service."""
+        if discovery_info.properties.get("uuid") != await instance_id.async_get(self.hass):
+            return self.async_abort(reason="not_local_instance")
+        if any(entry.source != SOURCE_IGNORE for entry in self._async_current_entries()):
+            return self.async_abort(reason="already_configured")
+        await self.async_set_unique_id(DOMAIN)
+        self._abort_if_unique_id_configured()
+        self.context["title_placeholders"] = {"name": "DeepL Translator"}
+        return await self.async_step_discovery_confirm()
+
+    async def async_step_discovery_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Wait for the user before asking for credentials or contacting DeepL."""
+        if user_input is not None:
+            return await self.async_step_user()
+        return self.async_show_form(step_id="discovery_confirm", data_schema=vol.Schema({}))
+
+    @callback
+    def _async_clear_discovery_flows(self) -> None:
+        """A configured account makes other setup suggestions unnecessary."""
+        for flow in self.hass.config_entries.flow.async_progress_by_handler(DOMAIN):
+            if flow["flow_id"] != self.flow_id and flow["context"].get("source") == "zeroconf":
+                self.hass.config_entries.flow.async_abort(flow["flow_id"])
+
+    async def async_step_import(self, user_input: dict[str, Any]) -> ConfigFlowResult:
+        """Create or update the single YAML-managed API account without duplicates.
+
+        Entry setup validates the key and retries connection failures through the
+        usage coordinator. YAML can therefore be imported while DeepL is offline.
+        """
+        try:
+            imported = YAML_ACCOUNT_SCHEMA(user_input)
+        except vol.Invalid:
+            return self.async_abort(reason="invalid_yaml")
+        api_key = imported.pop(CONF_API_KEY)
+        unique_id = _unique_id(api_key)
+        entries = self._async_current_entries()
+        managed = next((entry for entry in entries if entry.source == SOURCE_IMPORT
+                        or entry.data.get(CONF_YAML_MANAGED)), None)
+        matching = next((entry for entry in entries if entry.unique_id == unique_id
+                         or entry.data.get(CONF_API_KEY) == api_key), None)
+        if managed is not None and matching is not None and managed.entry_id != matching.entry_id:
+            return self.async_abort(reason="already_configured")
+        current = managed or matching
+        await self.async_set_unique_id(unique_id)
+        if current is not None:
+            if current.source == SOURCE_IGNORE:
+                return self.async_abort(reason="already_configured")
+            data = {**current.data, CONF_API_KEY: api_key, CONF_YAML_MANAGED: True}
+            options = {**current.options, **imported}
+            if data != current.data or options != current.options or current.unique_id != unique_id:
+                self.hass.config_entries.async_update_entry(
+                    current, data=data, options=options, unique_id=unique_id, title=_title(api_key)
+                )
+                if current.state is not ConfigEntryState.LOADED:
+                    await self.hass.config_entries.async_reload(current.entry_id)
+            self._async_clear_discovery_flows()
+            return self.async_abort(reason="already_configured")
+        imported.setdefault(
+            CONF_DEFAULT_TARGET_LANGUAGE, target_from_home_assistant_language(self.hass.config.language)
+        )
+        self._async_clear_discovery_flows()
+        return self.async_create_entry(
+            title=_title(api_key), data={CONF_API_KEY: api_key, CONF_YAML_MANAGED: True}, options=imported
+        )
+
     async def _async_check_key(self, api_key: str) -> str | None:
         """Return an error key when the API key does not work."""
         try:
@@ -148,6 +224,7 @@ class DeepLConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, domain
             if error := await self._async_check_key(api_key):
                 errors["base"] = error
             else:
+                self._async_clear_discovery_flows()
                 return self.async_create_entry(
                     title=_title(api_key),
                     data={CONF_API_KEY: api_key},
@@ -219,6 +296,7 @@ class DeepLConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, domain
             return self.async_abort(reason="reauth_successful")
 
         await self.async_set_unique_id(data["client_id"])
+        self._async_clear_discovery_flows()
         return self.async_create_entry(
             title="DeepL (OAuth)", data=data, options={CONF_DEFAULT_TARGET_LANGUAGE: target}
         )
