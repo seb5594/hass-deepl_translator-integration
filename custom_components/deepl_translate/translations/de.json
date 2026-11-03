@@ -1,0 +1,236 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "DeepL verbinden",
+        "description": "Erstelle einen API-Schlüssel in deinem DeepL-Konto unter *Konto > Schlüssel und Limits*. Schlüssel des kostenlosen Tarifs enden auf `:fx`; kostenlose und Pro-Schlüssel funktionieren gleichermaßen.",
+        "data": {
+          "api_key": "API-Schlüssel",
+          "default_target_language": "Standard-Zielsprache"
+        },
+        "data_description": {
+          "api_key": "Der Authentifizierungsschlüssel deines DeepL-API-Tarifs.",
+          "default_target_language": "Wird verwendet, wenn ein Service-Aufruf keine Zielsprache nennt. Vorausgewählt ist die Sprache dieses Home-Assistant-Servers."
+        }
+      },
+      "reauth_confirm": {
+        "title": "DeepL-API-Schlüssel aktualisieren",
+        "description": "DeepL hat den API-Schlüssel von {account} abgelehnt. Gib einen gültigen Schlüssel ein, um fortzufahren.",
+        "data": {
+          "api_key": "API-Schlüssel"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "DeepL ist nicht erreichbar. Prüfe die Internetverbindung und versuche es erneut.",
+      "invalid_auth": "DeepL hat diesen API-Schlüssel abgelehnt.",
+      "unknown": "Ein unerwarteter Fehler ist aufgetreten. Details stehen im Home-Assistant-Log."
+    },
+    "abort": {
+      "already_configured": "Dieses DeepL-Konto ist bereits eingerichtet.",
+      "reauth_successful": "Der API-Schlüssel wurde aktualisiert."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "DeepL-Optionen",
+        "data": {
+          "default_target_language": "Standard-Zielsprache",
+          "update_interval": "Intervall der Verbrauchsabfrage",
+          "cache_size": "Größe des Übersetzungs-Caches"
+        },
+        "data_description": {
+          "default_target_language": "Wird verwendet, wenn ein Service-Aufruf keine Zielsprache nennt.",
+          "update_interval": "Wie oft das Zeichenkontingent abgefragt wird, in Minuten. Die Abfrage verbraucht kein Kontingent.",
+          "cache_size": "Anzahl der im Speicher gehaltenen Übersetzungen, damit identische Texte nicht doppelt berechnet werden. Mit 0 wird der Cache abgeschaltet."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "characters_used": {
+        "name": "Verbrauchte Zeichen"
+      },
+      "characters_limit": {
+        "name": "Zeichenlimit"
+      },
+      "characters_remaining": {
+        "name": "Verbleibende Zeichen"
+      },
+      "usage_percent": {
+        "name": "Kontingent verbraucht"
+      },
+      "billing_period_end": {
+        "name": "Ende des Abrechnungszeitraums"
+      }
+    }
+  },
+  "services": {
+    "translate_text": {
+      "name": "Text übersetzen",
+      "description": "Übersetzt einen oder mehrere Texte mit DeepL und gibt das Ergebnis zurück.",
+      "fields": {
+        "text": {
+          "name": "Text",
+          "description": "Der zu übersetzende Text. Mit einer Liste lassen sich mehrere Texte in einer Anfrage übersetzen."
+        },
+        "target_language": {
+          "name": "Zielsprache",
+          "description": "Sprache, in die übersetzt wird. Standard ist die in der Integration gewählte Sprache."
+        },
+        "source_language": {
+          "name": "Quellsprache",
+          "description": "Sprache des Textes. Leer lassen, damit DeepL sie erkennt."
+        },
+        "formality": {
+          "name": "Anrede",
+          "description": "Formelle oder informelle Ansprache, soweit die Sprache sie unterstützt. Die prefer-Optionen weichen bei anderen Sprachen stillschweigend aus."
+        },
+        "context": {
+          "name": "Kontext",
+          "description": "Zusätzlicher Kontext, der die Übersetzung verbessert, aber weder übersetzt noch berechnet wird."
+        },
+        "glossary_id": {
+          "name": "Glossar-ID",
+          "description": "ID eines DeepL-Glossars, das angewendet wird. Erfordert die Quellsprache."
+        },
+        "tag_handling": {
+          "name": "Markup-Behandlung",
+          "description": "xml oder html wählen, wenn der Text Markup enthält, das die Übersetzung überstehen muss."
+        },
+        "config_entry_id": {
+          "name": "Konto",
+          "description": "Das zu verwendende DeepL-Konto. Nur nötig, wenn mehrere eingerichtet sind."
+        }
+      }
+    },
+    "translate_document": {
+      "name": "Dokument übersetzen",
+      "description": "Übersetzt eine Datei (Word, PowerPoint, Excel, PDF, HTML, Text und mehr) und speichert das Ergebnis.",
+      "fields": {
+        "input_file": {
+          "name": "Eingabedatei",
+          "description": "Pfad der zu übersetzenden Datei. Relative Pfade beginnen im Konfigurationsordner."
+        },
+        "output_file": {
+          "name": "Ausgabedatei",
+          "description": "Speicherort der Übersetzung. Standard ist der Eingabename mit angehängter Zielsprache, zum Beispiel bericht.de.docx."
+        },
+        "target_language": {
+          "name": "Zielsprache",
+          "description": "Sprache, in die übersetzt wird. Standard ist die in der Integration gewählte Sprache."
+        },
+        "source_language": {
+          "name": "Quellsprache",
+          "description": "Sprache des Dokuments. Leer lassen, damit DeepL sie erkennt."
+        },
+        "formality": {
+          "name": "Anrede",
+          "description": "Formelle oder informelle Ansprache, soweit die Sprache sie unterstützt."
+        },
+        "glossary_id": {
+          "name": "Glossar-ID",
+          "description": "ID eines DeepL-Glossars, das angewendet wird. Erfordert die Quellsprache."
+        },
+        "overwrite": {
+          "name": "Überschreiben",
+          "description": "Ersetzt die Ausgabedatei, falls sie bereits existiert."
+        },
+        "timeout": {
+          "name": "Zeitlimit",
+          "description": "Wie lange auf die Fertigstellung durch DeepL gewartet wird, in Sekunden."
+        },
+        "config_entry_id": {
+          "name": "Konto",
+          "description": "Das zu verwendende DeepL-Konto. Nur nötig, wenn mehrere eingerichtet sind."
+        }
+      }
+    },
+    "translate_structure": {
+      "name": "Struktur übersetzen",
+      "description": "Übersetzt nur die Textwerte von JSON- oder YAML-Daten und behält die Struktur bei. Dateien behalten ihr exaktes Layout samt Einrückung, Schlüsselreihenfolge, Anführungszeichen und Kommentaren; Schlüssel werden nie übersetzt.",
+      "fields": {
+        "data": {
+          "name": "Daten",
+          "description": "Zu übersetzende strukturierte Daten. Alternativ zur Eingabedatei."
+        },
+        "input_file": {
+          "name": "Eingabedatei",
+          "description": "Eine JSON- oder YAML-Datei. Relative Pfade beginnen im Konfigurationsordner."
+        },
+        "output_file": {
+          "name": "Ausgabedatei",
+          "description": "Speicherort der übersetzten Datei. Standard ist der Eingabename mit angehängter Zielsprache, zum Beispiel en.de.json."
+        },
+        "format": {
+          "name": "Format",
+          "description": "Dateiformat. Automatisch erkennt es an der Dateiendung."
+        },
+        "only_keys": {
+          "name": "Nur diese Schlüssel",
+          "description": "Übersetzt nur Werte, die zu diesen Schlüsseln gehören, zum Beispiel name, title und message. Empfohlen für Konfigurationsdateien, in denen die meisten Werte technisch sind."
+        },
+        "ignore_keys": {
+          "name": "Schlüssel ignorieren",
+          "description": "Werte, die zu diesen Schlüsseln gehören, werden nie übersetzt."
+        },
+        "skip_technical_values": {
+          "name": "Technische Werte überspringen",
+          "description": "Lässt URLs, Entity-IDs, Icons, Farben, Versionsnummern und ähnliche Bezeichner unangetastet."
+        },
+        "protect_placeholders": {
+          "name": "Platzhalter schützen",
+          "description": "Lässt Platzhalter wie {name}, %s und {{ Template }} unverändert."
+        },
+        "dry_run": {
+          "name": "Testlauf",
+          "description": "Listet die zu übersetzenden Texte samt Zeichenzahl auf, ohne DeepL zu kontaktieren oder etwas zu schreiben."
+        },
+        "overwrite": {
+          "name": "Überschreiben",
+          "description": "Ersetzt die Ausgabedatei, falls sie bereits existiert."
+        },
+        "target_language": {
+          "name": "Zielsprache",
+          "description": "Sprache, in die übersetzt wird. Standard ist die in der Integration gewählte Sprache."
+        },
+        "source_language": {
+          "name": "Quellsprache",
+          "description": "Sprache der Texte. Leer lassen, damit DeepL sie erkennt."
+        },
+        "formality": {
+          "name": "Anrede",
+          "description": "Formelle oder informelle Ansprache, soweit die Sprache sie unterstützt."
+        },
+        "context": {
+          "name": "Kontext",
+          "description": "Zusätzlicher Kontext, der die Übersetzung verbessert, aber weder übersetzt noch berechnet wird."
+        },
+        "glossary_id": {
+          "name": "Glossar-ID",
+          "description": "ID eines DeepL-Glossars, das angewendet wird. Erfordert die Quellsprache."
+        },
+        "config_entry_id": {
+          "name": "Konto",
+          "description": "Das zu verwendende DeepL-Konto. Nur nötig, wenn mehrere eingerichtet sind."
+        }
+      }
+    },
+    "get_languages": {
+      "name": "Sprachen abrufen",
+      "description": "Listet die Sprachen auf, aus und in die DeepL übersetzen kann.",
+      "fields": {
+        "type": {
+          "name": "Art",
+          "description": "Ob Ziel- oder Quellsprachen aufgelistet werden."
+        },
+        "config_entry_id": {
+          "name": "Konto",
+          "description": "Das zu verwendende DeepL-Konto. Nur nötig, wenn mehrere eingerichtet sind."
+        }
+      }
+    }
+  }
+}

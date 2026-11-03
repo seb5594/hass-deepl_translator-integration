@@ -1,0 +1,236 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect DeepL",
+        "description": "Create an API key in your DeepL account under *Account > Keys and limits*. Keys of the free plan end in `:fx`; free and Pro keys both work.",
+        "data": {
+          "api_key": "API key",
+          "default_target_language": "Default target language"
+        },
+        "data_description": {
+          "api_key": "The authentication key of your DeepL API plan.",
+          "default_target_language": "Used whenever a service call does not name a target language. Preselected with the language of this Home Assistant server."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Update the DeepL API key",
+        "description": "DeepL rejected the API key of {account}. Enter a valid key to continue.",
+        "data": {
+          "api_key": "API key"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "DeepL could not be reached. Check the internet connection and try again.",
+      "invalid_auth": "DeepL rejected this API key.",
+      "unknown": "Something unexpected went wrong. Check the Home Assistant log."
+    },
+    "abort": {
+      "already_configured": "This DeepL account is already set up.",
+      "reauth_successful": "The API key was updated."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "DeepL options",
+        "data": {
+          "default_target_language": "Default target language",
+          "update_interval": "Usage refresh interval",
+          "cache_size": "Translation cache size"
+        },
+        "data_description": {
+          "default_target_language": "Used whenever a service call does not name a target language.",
+          "update_interval": "How often the character quota is read, in minutes. Reading it does not use up any quota.",
+          "cache_size": "Number of translations kept in memory so identical texts are not billed twice. Set 0 to turn the cache off."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "characters_used": {
+        "name": "Characters used"
+      },
+      "characters_limit": {
+        "name": "Character limit"
+      },
+      "characters_remaining": {
+        "name": "Characters remaining"
+      },
+      "usage_percent": {
+        "name": "Quota used"
+      },
+      "billing_period_end": {
+        "name": "Billing period end"
+      }
+    }
+  },
+  "services": {
+    "translate_text": {
+      "name": "Translate text",
+      "description": "Translates one or more texts with DeepL and returns the result.",
+      "fields": {
+        "text": {
+          "name": "Text",
+          "description": "The text to translate. Use a list to translate several texts in one request."
+        },
+        "target_language": {
+          "name": "Target language",
+          "description": "Language to translate into. Defaults to the one chosen for the integration."
+        },
+        "source_language": {
+          "name": "Source language",
+          "description": "Language of the text. Leave empty to let DeepL detect it."
+        },
+        "formality": {
+          "name": "Formality",
+          "description": "Formal or informal wording, for languages that support it. The prefer options fall back silently for other languages."
+        },
+        "context": {
+          "name": "Context",
+          "description": "Additional context that improves the translation without being translated or billed."
+        },
+        "glossary_id": {
+          "name": "Glossary ID",
+          "description": "ID of a DeepL glossary to apply. Requires the source language."
+        },
+        "tag_handling": {
+          "name": "Tag handling",
+          "description": "Set to xml or html when the text contains markup that has to survive the translation."
+        },
+        "config_entry_id": {
+          "name": "Account",
+          "description": "The DeepL account to use. Only needed when several are set up."
+        }
+      }
+    },
+    "translate_document": {
+      "name": "Translate document",
+      "description": "Translates a file (Word, PowerPoint, Excel, PDF, HTML, text and more) and stores the result.",
+      "fields": {
+        "input_file": {
+          "name": "Input file",
+          "description": "Path of the file to translate. Relative paths start in the configuration folder."
+        },
+        "output_file": {
+          "name": "Output file",
+          "description": "Where to store the translation. Defaults to the input name with the target language added, for example report.de.docx."
+        },
+        "target_language": {
+          "name": "Target language",
+          "description": "Language to translate into. Defaults to the one chosen for the integration."
+        },
+        "source_language": {
+          "name": "Source language",
+          "description": "Language of the document. Leave empty to let DeepL detect it."
+        },
+        "formality": {
+          "name": "Formality",
+          "description": "Formal or informal wording, for languages that support it."
+        },
+        "glossary_id": {
+          "name": "Glossary ID",
+          "description": "ID of a DeepL glossary to apply. Requires the source language."
+        },
+        "overwrite": {
+          "name": "Overwrite",
+          "description": "Replace the output file if it already exists."
+        },
+        "timeout": {
+          "name": "Timeout",
+          "description": "How long to wait for DeepL to finish, in seconds."
+        },
+        "config_entry_id": {
+          "name": "Account",
+          "description": "The DeepL account to use. Only needed when several are set up."
+        }
+      }
+    },
+    "translate_structure": {
+      "name": "Translate structure",
+      "description": "Translates only the text values of JSON or YAML data and keeps its structure. Files keep their exact layout, including indentation, key order, quoting and comments; keys are never translated.",
+      "fields": {
+        "data": {
+          "name": "Data",
+          "description": "Structured data to translate. Use this or an input file."
+        },
+        "input_file": {
+          "name": "Input file",
+          "description": "A JSON or YAML file to translate. Relative paths start in the configuration folder."
+        },
+        "output_file": {
+          "name": "Output file",
+          "description": "Where to store the translated file. Defaults to the input name with the target language added, for example en.de.json."
+        },
+        "format": {
+          "name": "Format",
+          "description": "File format. Auto guesses it from the file extension."
+        },
+        "only_keys": {
+          "name": "Only keys",
+          "description": "Translate only values that belong to these keys, for example name, title and message. Recommended for configuration files, where most values are technical."
+        },
+        "ignore_keys": {
+          "name": "Ignore keys",
+          "description": "Never translate values that belong to these keys."
+        },
+        "skip_technical_values": {
+          "name": "Skip technical values",
+          "description": "Leave URLs, entity IDs, icons, colors, version numbers and similar identifiers alone."
+        },
+        "protect_placeholders": {
+          "name": "Protect placeholders",
+          "description": "Keep placeholders such as {name}, %s and {{ template }} unchanged."
+        },
+        "dry_run": {
+          "name": "Dry run",
+          "description": "List the texts that would be translated and their character count without contacting DeepL or writing anything."
+        },
+        "overwrite": {
+          "name": "Overwrite",
+          "description": "Replace the output file if it already exists."
+        },
+        "target_language": {
+          "name": "Target language",
+          "description": "Language to translate into. Defaults to the one chosen for the integration."
+        },
+        "source_language": {
+          "name": "Source language",
+          "description": "Language of the texts. Leave empty to let DeepL detect it."
+        },
+        "formality": {
+          "name": "Formality",
+          "description": "Formal or informal wording, for languages that support it."
+        },
+        "context": {
+          "name": "Context",
+          "description": "Additional context that improves the translation without being translated or billed."
+        },
+        "glossary_id": {
+          "name": "Glossary ID",
+          "description": "ID of a DeepL glossary to apply. Requires the source language."
+        },
+        "config_entry_id": {
+          "name": "Account",
+          "description": "The DeepL account to use. Only needed when several are set up."
+        }
+      }
+    },
+    "get_languages": {
+      "name": "Get languages",
+      "description": "Lists the languages DeepL can translate from or into.",
+      "fields": {
+        "type": {
+          "name": "Type",
+          "description": "Whether to list target or source languages."
+        },
+        "config_entry_id": {
+          "name": "Account",
+          "description": "The DeepL account to use. Only needed when several are set up."
+        }
+      }
+    }
+  }
+}
