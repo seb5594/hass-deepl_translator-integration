@@ -84,10 +84,11 @@ fewer features. Using DeepL's MCP servers with your AI assistants is a separate 
 
 ## Installation
 
-### HACS
+### HACS or Marketplace
 
-1. Add this repository to HACS as a custom repository (category *Integration*), or use the
-   *HACS* badge above.
+1. Use the *HACS · Marketplace* badge above, or add this repository as a custom repository
+   (category *Integration*): in HACS on Home Assistant 2026.10 and older, in
+   **Settings → Marketplace** on 2026.11 and newer.
 2. Install **DeepL Translator** and restart Home Assistant.
 
 ### Manual
