@@ -8,6 +8,7 @@ DOMAIN = "deepl_translator"
 CONF_DEFAULT_TARGET_LANGUAGE = "default_target_language"
 CONF_UPDATE_INTERVAL = "update_interval"
 CONF_CACHE_SIZE = "cache_size"
+CONF_YAML_MANAGED = "yaml_managed"
 
 # OAuth sign-in (DeepL's hosted MCP server)
 CONF_CLIENT_ID = "client_id"

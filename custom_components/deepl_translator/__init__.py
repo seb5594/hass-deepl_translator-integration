@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
 from homeassistant.const import CONF_API_KEY, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
-from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
 from .api import DeepLAuthError, DeepLError, Translation
@@ -24,13 +23,21 @@ from .data import DeepLRuntimeData, async_create_client
 from .languages import target_from_home_assistant_language
 from .oauth import async_create_oauth_backend
 from .services import DeepLServices
+from .yaml_config import CONFIG_SCHEMA  # noqa: F401 - Home Assistant's YAML entry point
 
-CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Register the services once, so they exist even before an account is loaded."""
     DeepLServices(hass).register()
+    if DOMAIN in config:
+        # A flow creates the entry after component setup finishes; awaiting it
+        # here would make entry setup wait for its own component setup.
+        hass.async_create_task(
+            hass.config_entries.flow.async_init(
+                DOMAIN, context={"source": SOURCE_IMPORT}, data=config[DOMAIN]
+            )
+        )
     return True
 
 

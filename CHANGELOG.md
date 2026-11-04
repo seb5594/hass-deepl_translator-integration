@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.0b3
+
+- Suggest setup under Devices & services after installation and restart, using this Home
+  Assistant instance's own mDNS advertisement. Configured or ignored accounts are not prompted again.
+- Accept an API key and optional language, polling interval and cache size in `configuration.yaml`,
+  including `!secret`. Import into a normal config entry without duplicate accounts on restart;
+  changing the YAML key updates the same managed account.
+
 ## 1.0.0b2
 
 - The integration is now called DeepL Translator, its domain is `deepl_translator` and its services are

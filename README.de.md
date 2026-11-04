@@ -75,8 +75,15 @@ entpacke dort die ZIP-Datei der neuesten Version) und starte Home Assistant neu.
 
 ## Einrichtung
 
+Nach dem Download und einem Neustart erscheint **DeepL Translator** unter
+*Einstellungen > Geräte & Dienste > Entdeckt*. Wähle dort **Konfigurieren** und
+anschließend API-Schlüssel oder OAuth. Der Vorschlag nutzt die lokale
+Home-Assistant-mDNS-Ankündigung und erscheint nur, solange noch kein Konto
+eingerichtet ist. Ein ignorierter Vorschlag bleibt ignoriert. Zeroconf/mDNS muss
+in Home Assistant aktiv sein; es gehört zur üblichen `default_config`.
+
 Öffne in Home Assistant *Einstellungen > Geräte & Dienste > Integration hinzufügen*, wähle **DeepL Translator**
-und entscheide, wie du dich anmeldest.
+und entscheide, wie du dich anmeldest, falls kein Vorschlag angezeigt wird.
 
 ### Mit API-Schlüssel (voller Funktionsumfang)
 
@@ -84,6 +91,40 @@ und entscheide, wie du dich anmeldest.
    API-Tarif umfasst 500.000 Zeichen pro Monat.
 2. Wähle *API-Schlüssel*, füge den Schlüssel ein und prüfe die Standard-Zielsprache, die aus deiner Serversprache
    vorausgewählt wird.
+
+### Einrichtung per YAML mit API-Schlüssel
+
+Alternativ zur Oberfläche kannst du ein API-Konto in `configuration.yaml` anlegen:
+
+```yaml
+deepl_translator:
+  api_key: !secret deepl_api_key
+  default_target_language: DE
+  update_interval: 30
+  cache_size: 256
+```
+
+In `secrets.yaml`:
+
+```yaml
+deepl_api_key: "DEIN-DEEPL-API-SCHLUESSEL:fx"
+```
+
+Nur `api_key` ist erforderlich. `default_target_language` verwendet sonst die
+Serversprache, `update_interval` beträgt standardmäßig 30 Minuten (zulässig: 5–1440),
+`cache_size` 256 Übersetzungen (0–5000; 0 deaktiviert den Cache).
+
+Nach einem Neustart importiert Home Assistant die Angaben in einen regulären
+Konfigurationseintrag. Ein vorhandenes Konto mit demselben Schlüssel wird
+wiederverwendet. Weitere Neustarts und ein Schlüsselwechsel in YAML erzeugen
+keine zusätzlichen Konten. Die YAML-Variante verwaltet ein API-Konto; weitere
+Konten lassen sich über die Oberfläche hinzufügen.
+
+Angegebene YAML-Optionen werden beim Start übernommen; nicht angegebene Optionen
+eines vorhandenen Kontos bleiben erhalten. Nach dem Entfernen des YAML-Blocks
+bleibt das importierte Konto bestehen und lässt sich in der Oberfläche verwalten
+oder löschen. Ohne Netzwerk wird die Einrichtung automatisch erneut versucht;
+bei einem ungültigen Schlüssel fordert Home Assistant eine erneute Anmeldung an.
 
 ### Anmeldung mit OAuth (experimentell)
 

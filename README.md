@@ -98,8 +98,14 @@ Copy `custom_components/deepl_translator` into the `custom_components` folder of
 
 ## Setup
 
+After downloading and restarting Home Assistant, **DeepL Translator** appears under
+*Settings > Devices & services > Discovered*. Select **Configure**, then choose an
+API key or OAuth. The suggestion uses this Home Assistant instance's own mDNS
+advertisement and stops once an account exists. Ignored suggestions stay ignored.
+Zeroconf/mDNS must be enabled; it is included in the usual `default_config`.
+
 In Home Assistant open *Settings > Devices & services > Add integration*, pick **DeepL
-Translator** and choose how to sign in.
+Translator** and choose how to sign in if no suggestion appears.
 
 ### With an API key (full feature set)
 
@@ -107,6 +113,38 @@ Translator** and choose how to sign in.
    covers 500,000 characters per month.
 2. Choose *API key*, paste the key and check the default target language, which is preselected from
    your server language.
+
+### YAML setup with an API key
+
+Instead of using the UI, configure one API account in `configuration.yaml`:
+
+```yaml
+deepl_translator:
+  api_key: !secret deepl_api_key
+  default_target_language: DE
+  update_interval: 30
+  cache_size: 256
+```
+
+In `secrets.yaml`:
+
+```yaml
+deepl_api_key: "YOUR-DEEPL-API-KEY:fx"
+```
+
+Only `api_key` is required. The target language otherwise follows the server
+language. The usage interval defaults to 30 minutes (range: 5–1440); the cache
+defaults to 256 translations (range: 0–5000; 0 disables it).
+
+Restart Home Assistant to import the settings into a normal config entry. An
+existing account with the same key is reused. Repeated starts and rotating the
+YAML key update the same account rather than adding duplicates. YAML manages
+one API account; additional accounts can be added through the UI.
+
+Supplied YAML options are applied on startup; omitted options of an existing
+account are retained. Removing the YAML block keeps the imported account, which
+can then be managed or deleted through the UI. Connection failures are retried
+automatically; an invalid key triggers Home Assistant's reauthentication flow.
 
 ### Signing in with OAuth (experimental)
 
