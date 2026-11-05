@@ -69,12 +69,14 @@
         "data": {
           "default_target_language": "Default target language",
           "update_interval": "Usage refresh interval",
-          "cache_size": "Translation cache size"
+          "cache_size": "Translation cache size",
+          "discover_translator": "Discover Custom Integration Translator"
         },
         "data_description": {
           "default_target_language": "Used whenever a service call does not name a target language.",
           "update_interval": "How often the character quota is read, in minutes. Reading it does not use up any quota.",
-          "cache_size": "Number of translations kept in memory so identical texts are not billed twice. Set 0 to turn the cache off."
+          "cache_size": "Number of translations kept in memory so identical texts are not billed twice. Set 0 to turn the cache off.",
+          "discover_translator": "Offer the installed companion under Devices & services (HA 2023.7+). Disable on every DeepL account to stop suggestions. Manual setup remains available."
         }
       }
     }

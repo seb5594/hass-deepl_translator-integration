@@ -3,13 +3,19 @@
 from __future__ import annotations
 
 from awesomeversion import AwesomeVersion, AwesomeVersionException
-from homeassistant.config_entries import SOURCE_INTEGRATION_DISCOVERY, ConfigEntry
+from homeassistant.config_entries import (
+    SOURCE_INTEGRATION_DISCOVERY,
+    ConfigEntry,
+    ConfigEntryState,
+)
 from homeassistant.const import MAJOR_VERSION, MINOR_VERSION
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import discovery_flow
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.start import async_at_started
 from homeassistant.loader import async_get_custom_components
+
+from .const import CONF_DISCOVER_TRANSLATOR, DOMAIN
 
 TRANSLATOR = "custom_integration_translator"
 MINIMUM_TRANSLATOR_VERSION = "2026.11.05.3"
@@ -18,8 +24,22 @@ MINIMUM_TRANSLATOR_VERSION = "2026.11.05.3"
 @callback
 def async_watch_translator(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Use startup and installer events; never poll or install the companion."""
-    # The optional companion needs this core version. DeepL still supports older cores.
-    if (MAJOR_VERSION, MINOR_VERSION) < (2026, 11):
+    if not entry.options.get(CONF_DISCOVER_TRANSLATOR, True):
+        # Another enabled account may still offer discovery. Leave forms the user
+        # has already opened for account selection alone.
+        if not any(
+            other.entry_id != entry.entry_id
+            and other.state is ConfigEntryState.LOADED
+            and other.options.get(CONF_DISCOVER_TRANSLATOR, True)
+            for other in hass.config_entries.async_entries(DOMAIN)
+        ):
+            for flow in hass.config_entries.flow.async_progress():
+                if (
+                    flow["handler"] == TRANSLATOR
+                    and flow["context"].get("source") == SOURCE_INTEGRATION_DISCOVERY
+                    and flow["step_id"] == "discovery_confirm"
+                ):
+                    hass.config_entries.flow.async_abort(flow["flow_id"])
         return
 
     active = True
@@ -42,6 +62,11 @@ def async_watch_translator(hass: HomeAssistant, entry: ConfigEntry) -> None:
             if AwesomeVersion(integration.version) < AwesomeVersion(
                 MINIMUM_TRANSLATOR_VERSION
             ):
+                return
+            # Earlier companion releases needed Core 2026.11; .4 adds 2023.7+.
+            if (MAJOR_VERSION, MINOR_VERSION) < (2026, 11) and AwesomeVersion(
+                integration.version
+            ) < AwesomeVersion("2026.11.05.4"):
                 return
         except AwesomeVersionException:
             return

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.0b4
+
+- Also discover Custom Integration Translator 2026.11.05.4+ on Core 2023.7 and newer.
+
+- Add a per-account switch to disable Custom Integration Translator discovery. Remove pending confirmation cards when no other loaded account enables discovery; preserve manual setup and account-selection forms.
+
 ## 1.0.0b3
 
 - Discover an installed Custom Integration Translator (2026.11.05.3 or newer) on Home Assistant 2026.11+ after startup or HACS/Marketplace installation. Offer a native setup card, respect existing and ignored entries, and remove listeners when the account unloads. No polling, automatic downloads or translation requests are added.

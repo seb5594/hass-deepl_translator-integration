@@ -40,6 +40,7 @@ except ImportError:  # Home Assistant older than 2024.4
 from .api import DeepLAuthError, DeepLConnectionError, DeepLError, TranslateOptions
 from .const import (
     CONF_CACHE_SIZE,
+    CONF_DISCOVER_TRANSLATOR,
     CONF_DEFAULT_TARGET_LANGUAGE,
     CONF_UPDATE_INTERVAL,
     DEFAULT_CACHE_SIZE,
@@ -281,6 +282,8 @@ class DeepLOptionsFlow(OptionsFlow):
         has_usage = CONF_API_KEY in entry.data  # accounts signed in with OAuth get no usage figures
         if user_input is not None:
             data = {
+                **entry.options,
+                CONF_DISCOVER_TRANSLATOR: user_input.get(CONF_DISCOVER_TRANSLATOR, entry.options.get(CONF_DISCOVER_TRANSLATOR, True)),
                 CONF_DEFAULT_TARGET_LANGUAGE: normalize_target_language(
                     user_input[CONF_DEFAULT_TARGET_LANGUAGE]
                 ),
@@ -293,6 +296,7 @@ class DeepLOptionsFlow(OptionsFlow):
         options = entry.options
         schema = vol.Schema(
             {
+                vol.Required(CONF_DISCOVER_TRANSLATOR, default=options.get(CONF_DISCOVER_TRANSLATOR, True)): bool,
                 vol.Required(
                     CONF_DEFAULT_TARGET_LANGUAGE,
                     default=options.get(
