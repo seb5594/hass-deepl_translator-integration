@@ -11,6 +11,7 @@ from homeassistant.helpers.typing import ConfigType
 
 from .api import DeepLAuthError, DeepLError, Translation
 from .cache import TranslationCache
+from .companion import async_watch_translator
 from .const import (
     CONF_CACHE_SIZE,
     CONF_DEFAULT_TARGET_LANGUAGE,
@@ -69,6 +70,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     entry.async_on_unload(entry.add_update_listener(_async_reload_entry))
     if platforms:
         await hass.config_entries.async_forward_entry_setups(entry, platforms)
+    async_watch_translator(hass, entry)
     return True
 
 

@@ -493,3 +493,7 @@ findest du in der [Workflow-Engine](https://github.com/seb5594/hass-workflows).
 ## Lizenz
 
 Veröffentlicht unter der [MIT-Lizenz](LICENSE).
+
+## Optionaler Custom Integration Translator
+
+Ab Home Assistant 2026.11 erkennt ein eingerichtetes DeepL-Konto den installierten [Custom Integration Translator](https://github.com/seb5594/hass-custom_integrations_translator-integration) ab Version 2026.11.05.3. Nach einer HACS-/Marketplace-Installation oder einem Home-Assistant-Neustart bietet eine **Entdeckt**-Kachel unter **Einstellungen → Geräte & Dienste** die Einrichtung an. Du kannst den Vorschlag einrichten oder ignorieren. Der Translator wird niemals automatisch heruntergeladen. Die Erkennung reagiert auf Installationsereignisse und den Start, ohne regelmäßige Abfragen oder DeepL-Anfragen. Manuell kopierte Dateien benötigen einen Home-Assistant-Neustart. Ältere Home-Assistant-Versionen funktionieren weiterhin ohne diese optionale Funktion.

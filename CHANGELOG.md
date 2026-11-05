@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.0b3
+
+- Discover an installed Custom Integration Translator (2026.11.05.3 or newer) on Home Assistant 2026.11+ after startup or HACS/Marketplace installation. Offer a native setup card, respect existing and ignored entries, and remove listeners when the account unloads. No polling, automatic downloads or translation requests are added.
+
 ## 1.0.0b2
 
 - The integration is now called DeepL Translator, its domain is `deepl_translator` and its services are
