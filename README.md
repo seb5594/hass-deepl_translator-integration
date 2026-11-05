@@ -518,7 +518,7 @@ matrix runner.
 
 ## Optional Custom Integration Translator
 
-On Home Assistant 2023.7 or newer, a configured DeepL account detects an installed [Custom Integration Translator](https://github.com/seb5594/hass-custom_integrations_translator-integration) version 2026.11.05.4 or newer. After HACS/Marketplace installation or Home Assistant startup, a **Discovered** card in **Settings → Devices & services** offers setup. You choose whether to configure or ignore it. The companion is never downloaded automatically. Discovery uses installer events and startup, with no periodic polling or DeepL requests. Manually copied files need a Home Assistant restart. 
+On Home Assistant 2023.7 or newer, a configured DeepL account detects an installed [Custom Integration Translator](https://github.com/seb5594/hass-custom_integrations_translator-integration) version 2026.11.05.4 or newer. After HACS/Marketplace installation or Home Assistant startup, a **Discovered** card in **Settings → Devices & services** offers setup. You choose whether to configure or ignore it. The companion is never downloaded automatically. Discovery uses installer events and startup, with no periodic polling or DeepL requests. Manually copied files need a Home Assistant restart.
 
 Under **Configure → Discover Custom Integration Translator**, disable the setup suggestion for this account. Disable it on every DeepL account to stop discovery entirely. Pending confirmation cards are removed; manual setup, active translators and account-selection forms remain available.
 
