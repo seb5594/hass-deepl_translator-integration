@@ -204,6 +204,7 @@ async def test_options_change_reloads_the_account(hass, aioclient_mock):
     await hass.async_block_till_done()
     assert result["type"] == "create_entry"
     assert entry.options == {
+        "discover_translator": True,
         CONF_DEFAULT_TARGET_LANGUAGE: "FR",
         CONF_UPDATE_INTERVAL: 10,
         CONF_CACHE_SIZE: 0,

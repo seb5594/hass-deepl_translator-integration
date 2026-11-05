@@ -69,12 +69,14 @@
         "data": {
           "default_target_language": "Standard-Zielsprache",
           "update_interval": "Intervall der Verbrauchsabfrage",
-          "cache_size": "Größe des Übersetzungs-Caches"
+          "cache_size": "Größe des Übersetzungs-Caches",
+          "discover_translator": "Custom Integration Translator entdecken"
         },
         "data_description": {
           "default_target_language": "Wird verwendet, wenn ein Service-Aufruf keine Zielsprache nennt.",
           "update_interval": "Wie oft das Zeichenkontingent abgefragt wird, in Minuten. Die Abfrage verbraucht kein Kontingent.",
-          "cache_size": "Anzahl der im Speicher gehaltenen Übersetzungen, damit identische Texte nicht doppelt berechnet werden. Mit 0 wird der Cache abgeschaltet."
+          "cache_size": "Anzahl der im Speicher gehaltenen Übersetzungen, damit identische Texte nicht doppelt berechnet werden. Mit 0 wird der Cache abgeschaltet.",
+          "discover_translator": "Den installierten Translator unter Geräte & Dienste anbieten (HA 2023.7+). Bei allen DeepL-Konten ausschalten, um Vorschläge zu stoppen. Manuelle Einrichtung bleibt möglich."
         }
       }
     }

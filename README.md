@@ -15,8 +15,9 @@
   <a href="https://buymeacoffee.com/seb5594"><img src="https://img.shields.io/static/v1?label=Support&amp;message=Buy%20Me%20a%20Coffee&amp;color=FFDD00&amp;logo=buy-me-a-coffee&amp;logoColor=black&amp;style=for-the-badge" alt="Buy Me a Coffee" height="40"></a><br>
   <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=seb5594&amp;repository=hass-deepl_translator-integration&amp;category=integration"><img src="https://img.shields.io/static/v1?label=HACS%20%C2%B7%20Marketplace&amp;message=Add%20integration&amp;color=41BDF5&amp;logo=homeassistantcommunitystore&amp;logoColor=white&amp;style=for-the-badge" alt="HACS · Marketplace" height="28"></a>
   <a href="https://github.com/seb5594/hass-deepl_translator-integration/actions/workflows/compat.yml"><img src="https://img.shields.io/static/v1?label=home%20assistant&amp;message=%E2%89%A5%202023.7.0&amp;color=1877A5&amp;style=for-the-badge" alt="home assistant" height="28"></a>
-  <a href="https://github.com/seb5594/hass-deepl_translator-integration/releases/tag/v1.0.0b3"><img src="https://img.shields.io/static/v1?label=version&amp;message=1.0.0b3&amp;color=1877A5&amp;style=for-the-badge" alt="version" height="28"></a><br>
-  <a href="https://github.com/seb5594/hass-deepl_translator-integration/releases"><img src="https://img.shields.io/github/downloads/seb5594/hass-deepl_translator-integration/v1.0.0b3/total?label=downloads&amp;color=1877A5&amp;style=flat" alt="downloads" height="20"></a>
+  <a href="https://github.com/seb5594/hass-deepl_translator-integration/releases"><img src="https://img.shields.io/static/v1?label=version&amp;message=1.0.0b4&amp;color=1877A5&amp;style=for-the-badge" alt="version" height="28"></a><br>
+  <a href="https://github.com/seb5594/hass-deepl_translator-integration/stargazers"><img src="https://img.shields.io/github/stars/seb5594/hass-deepl_translator-integration?label=stars&amp;style=flat" alt="stars" height="20"></a>
+  <a href="https://github.com/seb5594/hass-deepl_translator-integration/releases"><img src="https://img.shields.io/github/downloads/seb5594/hass-deepl_translator-integration/latest/total?label=downloads&amp;color=1877A5&amp;style=flat" alt="downloads" height="20"></a>
   <a href="https://github.com/seb5594/hass-deepl_translator-integration/issues"><img src="https://img.shields.io/github/issues/seb5594/hass-deepl_translator-integration?label=issues&amp;style=flat" alt="issues" height="20"></a>
   <img src="https://img.shields.io/static/v1?label=tests&amp;message=40%20passed&amp;color=2F855A&amp;style=flat" alt="tests" height="20">
   <a href="https://github.com/seb5594/hass-deepl_translator-integration/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/seb5594/hass-deepl_translator-integration/ci.yml?branch=main&amp;label=checks&amp;style=flat" alt="checks" height="20"></a>
@@ -517,7 +518,9 @@ matrix runner.
 
 ## Optional Custom Integration Translator
 
-On Home Assistant 2026.11 or newer, a configured DeepL account detects an installed [Custom Integration Translator](https://github.com/seb5594/hass-custom_integrations_translator-integration) version 2026.11.05.3 or newer. After HACS/Marketplace installation or Home Assistant startup, a **Discovered** card in **Settings → Devices & services** offers setup. You choose whether to configure or ignore it. The companion is never downloaded automatically. Discovery uses installer events and startup, with no periodic polling or DeepL requests. Manually copied files need a Home Assistant restart. Older Home Assistant versions continue to work without this optional feature.
+On Home Assistant 2023.7 or newer, a configured DeepL account detects an installed [Custom Integration Translator](https://github.com/seb5594/hass-custom_integrations_translator-integration) version 2026.11.05.4 or newer. After HACS/Marketplace installation or Home Assistant startup, a **Discovered** card in **Settings → Devices & services** offers setup. You choose whether to configure or ignore it. The companion is never downloaded automatically. Discovery uses installer events and startup, with no periodic polling or DeepL requests. Manually copied files need a Home Assistant restart. 
+
+Under **Configure → Discover Custom Integration Translator**, disable the setup suggestion for this account. Disable it on every DeepL account to stop discovery entirely. Pending confirmation cards are removed; manual setup, active translators and account-selection forms remain available.
 
 <!-- support:begin (generated, shared text) -->
 ## Say thanks
