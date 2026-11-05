@@ -101,7 +101,7 @@ async def test_older_core_keeps_deepl_without_optional_discovery(hass, companion
     entry, _, _, scan, create = companion
     with patch(f"{MODULE}.MINOR_VERSION", 10):
         async_watch_translator(hass, entry)
-    await hass.async_block_till_done()
+        await hass.async_block_till_done()
     scan.assert_awaited_once()
     create.assert_not_called()
 
