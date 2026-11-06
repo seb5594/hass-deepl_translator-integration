@@ -399,3 +399,14 @@ get_languages:
       selector:
         config_entry:
           integration: deepl_translator
+
+get_usage:
+  fields:
+    refresh:
+      default: false
+      selector:
+        boolean:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: deepl_translator

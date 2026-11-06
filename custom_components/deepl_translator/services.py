@@ -131,6 +131,8 @@ GET_LANGUAGES_SCHEMA = vol.Schema(
     }
 )
 
+GET_USAGE_SCHEMA = vol.Schema({vol.Optional("refresh", default=False): cv.boolean, **_ENTRY_FIELD})
+
 
 class DeepLServices:
     """Implements the services on top of the loaded config entries."""
@@ -145,6 +147,7 @@ class DeepLServices:
             (SERVICE_TRANSLATE_DOCUMENT, self.translate_document, TRANSLATE_DOCUMENT_SCHEMA),
             (SERVICE_TRANSLATE_STRUCTURE, self.translate_structure, TRANSLATE_STRUCTURE_SCHEMA),
             (SERVICE_GET_LANGUAGES, self.get_languages, GET_LANGUAGES_SCHEMA),
+            ("get_usage", self.get_usage, GET_USAGE_SCHEMA),
         ):
             self._hass.services.async_register(
                 DOMAIN, name, handler, schema=schema, supports_response=SupportsResponse.OPTIONAL
@@ -380,6 +383,27 @@ class DeepLServices:
         if isinstance(err, DeepLAuthError):
             runtime.entry.async_start_reauth(self._hass)
         return _as_home_assistant_error(err)
+
+    async def get_usage(self, call: ServiceCall) -> dict[str, Any]:
+        """Expose account usage without translating text; OAuth has no quota API."""
+        runtime = self._runtime(call.data.get(ATTR_CONFIG_ENTRY_ID))
+        coordinator = runtime.coordinator
+        if coordinator is None:
+            return {"available": False, "reason": "unsupported"}
+        if call.data.get("refresh"):
+            await coordinator.async_refresh()
+        if not coordinator.last_update_success or coordinator.data is None:
+            return {"available": False, "reason": "unavailable"}
+        usage = coordinator.data
+        return {
+            "available": True,
+            "character_count": usage.character_count,
+            "character_limit": None if usage.is_unlimited else usage.character_limit,
+            "characters_remaining": usage.characters_remaining,
+            "unlimited": usage.is_unlimited,
+            "end_time": usage.end_time,
+            "refreshed": bool(call.data.get("refresh")),
+        }
 
     async def get_languages(self, call: ServiceCall) -> dict[str, Any]:
         """List the languages DeepL supports."""

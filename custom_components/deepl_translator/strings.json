@@ -264,6 +264,20 @@
           "description": "The DeepL account to use. Only needed when several are set up."
         }
       }
+    },
+    "get_usage": {
+      "name": "Get usage",
+      "description": "Returns character usage for the selected account. Quota is unavailable for OAuth accounts.",
+      "fields": {
+        "refresh": {
+          "name": "Refresh",
+          "description": "Refresh the account usage from DeepL without translation charges."
+        },
+        "config_entry_id": {
+          "name": "Account",
+          "description": "The DeepL account to use. Only needed when several are set up."
+        }
+      }
     }
   }
 }
