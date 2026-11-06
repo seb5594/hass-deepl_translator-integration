@@ -264,6 +264,20 @@
           "description": "Das zu verwendende DeepL-Konto. Nur nötig, wenn mehrere eingerichtet sind."
         }
       }
+    },
+    "get_usage": {
+      "name": "Kontingent abrufen",
+      "description": "Zeigt den Zeichenverbrauch des gewählten Kontos. Bei OAuth ist das Kontingent nicht verfügbar.",
+      "fields": {
+        "refresh": {
+          "name": "Aktualisieren",
+          "description": "Kontostand kostenlos bei DeepL neu abfragen."
+        },
+        "config_entry_id": {
+          "name": "Konto",
+          "description": "Das zu verwendende DeepL-Konto. Nur nötig, wenn mehrere eingerichtet sind."
+        }
+      }
     }
   }
 }

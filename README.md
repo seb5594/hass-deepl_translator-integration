@@ -15,8 +15,9 @@
   <a href="https://buymeacoffee.com/seb5594"><img src="https://img.shields.io/static/v1?label=Support&amp;message=Buy%20Me%20a%20Coffee&amp;color=FFDD00&amp;logo=buy-me-a-coffee&amp;logoColor=black&amp;style=for-the-badge" alt="Buy Me a Coffee" height="40"></a><br>
   <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=seb5594&amp;repository=hass-deepl_translator-integration&amp;category=integration"><img src="https://img.shields.io/static/v1?label=HACS%20%C2%B7%20Marketplace&amp;message=Add%20integration&amp;color=41BDF5&amp;logo=homeassistantcommunitystore&amp;logoColor=white&amp;style=for-the-badge" alt="HACS · Marketplace" height="28"></a>
   <a href="https://github.com/seb5594/hass-deepl_translator-integration/actions/workflows/compat.yml"><img src="https://img.shields.io/static/v1?label=home%20assistant&amp;message=%E2%89%A5%202023.7.0&amp;color=1877A5&amp;style=for-the-badge" alt="home assistant" height="28"></a>
-  <a href="https://github.com/seb5594/hass-deepl_translator-integration/releases/tag/v1.0.0b4"><img src="https://img.shields.io/static/v1?label=version&amp;message=1.0.0b4&amp;color=1877A5&amp;style=for-the-badge" alt="version" height="28"></a><br>
-  <a href="https://github.com/seb5594/hass-deepl_translator-integration/releases"><img src="https://img.shields.io/github/downloads/seb5594/hass-deepl_translator-integration/v1.0.0b4/total?label=downloads&amp;color=1877A5&amp;style=flat" alt="downloads" height="20"></a>
+  <a href="https://github.com/seb5594/hass-deepl_translator-integration/releases"><img src="https://img.shields.io/static/v1?label=version&amp;message=1.0.0b5&amp;color=1877A5&amp;style=for-the-badge" alt="version" height="28"></a><br>
+  <a href="https://github.com/seb5594/hass-deepl_translator-integration/stargazers"><img src="https://img.shields.io/github/stars/seb5594/hass-deepl_translator-integration?label=stars&amp;style=flat" alt="stars" height="20"></a>
+  <a href="https://github.com/seb5594/hass-deepl_translator-integration/releases"><img src="https://img.shields.io/github/downloads/seb5594/hass-deepl_translator-integration/latest/total?label=downloads&amp;color=1877A5&amp;style=flat" alt="downloads" height="20"></a>
   <a href="https://github.com/seb5594/hass-deepl_translator-integration/issues"><img src="https://img.shields.io/github/issues/seb5594/hass-deepl_translator-integration?label=issues&amp;style=flat" alt="issues" height="20"></a>
   <img src="https://img.shields.io/static/v1?label=tests&amp;message=40%20passed&amp;color=2F855A&amp;style=flat" alt="tests" height="20">
   <a href="https://github.com/seb5594/hass-deepl_translator-integration/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/seb5594/hass-deepl_translator-integration/ci.yml?branch=main&amp;label=checks&amp;style=flat" alt="checks" height="20"></a>
@@ -320,6 +321,12 @@ Returns `languages: [{code, name, supports_formality}]` for `type: target` (defa
 
 > Older automations written with `service:` instead of `action:` (Home Assistant before 2024.8) work
 > the same way.
+
+### `deepl_translator.get_usage`
+
+The `deepl_translator.get_usage` action returns `available`, `character_count`, `character_limit`, `characters_remaining`, `unlimited`, `end_time` and `refreshed` for the selected `config_entry_id` (or the only loaded account). By default it reads cached usage. Set `refresh: true` to query the usage endpoint without translating text. Uncapped accounts have null limits and remaining characters. OAuth returns `available: false, reason: unsupported`; failed updates return `available: false, reason: unavailable`, rather than reporting a stale balance as current. Concurrent account use and provider reporting delays can still affect a fresh snapshot.
+
+Custom Integration Translator 2026.11.06.1 uses this action for its quota preview. Translation remains compatible with older DeepL versions, which show an unknown balance.
 
 ## Recipes
 

@@ -1204,3 +1204,35 @@ async def test_mcp_backend_rejects_servers_it_cannot_use():
         )
         with pytest.raises(DeepLError, match=message):
             await DeepLMcpBackend(session, static_token, "agent/1").async_connect()
+
+
+async def test_usage_service_cached_refresh_and_unlimited(hass, aioclient_mock):
+    mock_usage(aioclient_mock)
+    entry = await setup_entry(hass)
+    aioclient_mock.clear_requests()
+    cached = await call(hass, "get_usage", config_entry_id=entry.entry_id)
+    assert cached['available'] and cached['characters_remaining'] == 487655
+    assert not cached['refreshed']
+    assert aioclient_mock.call_count == 0
+    mock_usage(aioclient_mock, {'character_count':12399,'character_limit':500000})
+    fresh = await call(hass, "get_usage", config_entry_id=entry.entry_id, refresh=True)
+    assert fresh['refreshed'] and fresh['characters_remaining'] == 487601
+    assert not translate_requests(aioclient_mock)
+    aioclient_mock.clear_requests()
+    mock_usage(aioclient_mock, {'character_count':12399,'character_limit':0})
+    unlimited = await call(hass, "get_usage", refresh=True)
+    assert unlimited['unlimited'] and unlimited['characters_remaining'] is None
+    assert unlimited['character_limit'] is None
+
+
+async def test_usage_service_oauth_returns_no_fabricated_quota(hass):
+    await setup_oauth_entry(hass)
+    assert await call(hass,"get_usage",refresh=True) == {'available':False,'reason':'unsupported'}
+
+
+async def test_usage_service_failed_refresh_does_not_report_stale_balance(hass, aioclient_mock):
+    mock_usage(aioclient_mock)
+    await setup_entry(hass)
+    aioclient_mock.clear_requests()
+    mock_usage(aioclient_mock, {'message':'Forbidden'}, status=403)
+    assert await call(hass,"get_usage",refresh=True) == {'available':False,'reason':'unavailable'}
