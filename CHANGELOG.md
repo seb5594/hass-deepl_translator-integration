@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.0b5
+## 2026.11.06.1
 
 - Expose `deepl_translator.get_usage` for account-specific character usage and remaining quota, with optional refresh and explicit unavailable/unlimited responses. OAuth reports that usage is unsupported.
 - Support the usage preview in Custom Integration Translator 2026.11.06.1 without sharing internal coordinator objects.
