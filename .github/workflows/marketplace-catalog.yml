@@ -1,0 +1,60 @@
+name: Marketplace catalog
+
+on:
+  workflow_dispatch:
+    inputs:
+      submit:
+        description: Submit to hacs/default after validation
+        type: boolean
+        default: false
+      publishing_docs_read:
+        description: I have read the HACS publishing documentation
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: marketplace-catalog
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    if: github.event.repository.private != true && github.event.repository.is_template != true && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          repository: seb5594/hass-workflows
+          ref: 1c374d5ac807521ec73e613909e5b4787a5ded5d
+          token: ${{ secrets.ORCHESTRATION_PAT }}
+          path: .engine
+          persist-credentials: false
+      - name: Validate for the public catalog
+        uses: hacs/action@main
+        with:
+          category: integration
+          repository: ${{ github.repository }}
+          comment: 'false'
+      - name: Validate Home Assistant integration
+        if: ${{ !cancelled() }} # Report hassfest findings even when the HACS checks failed.
+        uses: home-assistant/actions/hassfest@master
+      - name: Prepare catalog submission
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python .engine/.scripts/marketplace_catalog.py
+      - uses: actions/upload-artifact@v7
+        with:
+          name: marketplace-submission
+          path: .marketplace-submission/
+      - name: Submit validated repository
+        if: inputs.submit && inputs.publishing_docs_read && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+        env:
+          GH_TOKEN: ${{ secrets.CATALOG_SUBMISSION_TOKEN }}
+        run: python .engine/.scripts/marketplace_catalog.py --submit
