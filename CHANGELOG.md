@@ -2,6 +2,9 @@
 
 ## 2026.11.07.1
 
+- Use the exact version for release tags and titles, without a leading `v`.
+- Sort manifest keys as required by Hassfest.
+
 - Prepare a release validated by the shared HASS Marketplace workflow, including HACS and Hassfest without ignored checks.
 - Keep the generated Marketplace submission files available as a workflow artifact.
 
