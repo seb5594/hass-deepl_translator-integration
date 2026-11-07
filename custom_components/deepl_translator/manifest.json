@@ -9,5 +9,5 @@
   "issue_tracker": "https://github.com/seb5594/hass-deepl_translator-integration/issues",
   "dependencies": ["http"],
   "requirements": [],
-  "version": "2026.11.06.1"
+  "version": "2026.11.07.1"
 }
