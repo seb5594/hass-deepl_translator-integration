@@ -1257,14 +1257,18 @@ async def call_as(hass, user, service, **data):
     ],
 )
 async def test_file_services_refuse_users_who_are_not_administrators(
-    hass, hass_read_only_user, service, data
+    hass, aioclient_mock, hass_read_only_user, service, data
 ):
+    mock_usage(aioclient_mock)
     await setup_entry(hass)
     with pytest.raises(Unauthorized):
         await call_as(hass, hass_read_only_user, service, **data)
 
 
-async def test_file_services_still_serve_administrators_and_automations(hass, hass_admin_user):
+async def test_file_services_still_serve_administrators_and_automations(
+    hass, aioclient_mock, hass_admin_user
+):
+    mock_usage(aioclient_mock)
     await setup_entry(hass)
     data = {"data": {"title": "Hello"}, "dry_run": True}
     assert (await call_as(hass, hass_admin_user, "translate_structure", **data))["dry_run"] is True
@@ -1274,6 +1278,7 @@ async def test_file_services_still_serve_administrators_and_automations(hass, ha
 async def test_services_without_file_access_stay_open_to_every_user(
     hass, aioclient_mock, hass_read_only_user
 ):
+    mock_usage(aioclient_mock)
     await setup_entry(hass)
     mock_translation(aioclient_mock, "Hallo")
     response = await call_as(hass, hass_read_only_user, "translate_text", text="Hello")
