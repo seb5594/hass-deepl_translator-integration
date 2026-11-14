@@ -36,9 +36,10 @@ with a regular DeepL API subscription.
 - **`deepl_translator.translate_text`**: one or many texts in, translations out. The result is
   returned to the caller, so any automation, script or integration can use it.
 - **`deepl_translator.translate_document`**: translates a file (Word, PowerPoint, Excel, PDF,
-  HTML, plain text and more) and saves it where you tell it to.
+  HTML, plain text and more) and saves it where you tell it to. Administrators only.
 - **`deepl_translator.translate_structure`**: translates only the text values of JSON or YAML data
-  (inline or from a file) and leaves keys, layout, comments and technical values alone.
+  (inline or from a file) and leaves keys, layout, comments and technical values alone. Reading
+  or writing a file is for administrators only.
 - **`deepl_translator.get_languages`**: lists the languages DeepL currently supports.
 - **Usage sensors**: characters used, limit, remaining, percent used and the end of the billing
   period. They tell you at a glance how much of the free quota is gone.

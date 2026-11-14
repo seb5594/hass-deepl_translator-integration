@@ -13,9 +13,10 @@ und mit einem regulären DeepL-API-Abo.
   Ergebnis geht an den Aufrufer zurück, daher kann jede Automatisierung, jedes Skript und jede
   Integration es verwenden.
 - **`deepl_translator.translate_document`**: übersetzt eine Datei (Word, PowerPoint, Excel, PDF, HTML,
-  Text und mehr) und speichert sie, wo du es festlegst.
+  Text und mehr) und speichert sie, wo du es festlegst. Nur für Administratoren.
 - **`deepl_translator.translate_structure`**: übersetzt nur die Textwerte von JSON- oder YAML-Daten
-  (inline oder aus einer Datei) und lässt Schlüssel, Layout, Kommentare und technische Werte in Ruhe.
+  (inline oder aus einer Datei) und lässt Schlüssel, Layout, Kommentare und technische Werte in Ruhe. Dateien lesen oder schreiben dürfen nur
+  Administratoren.
 - **`deepl_translator.get_languages`**: listet die aktuell unterstützten Sprachen auf.
 - **Verbrauchssensoren**: verbrauchte Zeichen, Limit, Rest, Prozent und Ende des Abrechnungszeitraums.
   Beim kostenlosen Tarif siehst du so sofort, wie viel vom Kontingent weg ist.

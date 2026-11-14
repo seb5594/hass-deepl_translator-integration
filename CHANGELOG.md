@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026.11.14.1
+
+- **Security:** `deepl_translator.translate_document` and `deepl_translator.translate_structure`
+  read and write files in the configuration folder, so only administrators may call them now.
+  Before, any logged-in user could read files such as `.storage/auth` through
+  `translate_structure`, send any text file to DeepL, or overwrite configuration files with
+  `output_file` and `overwrite`. Automations and scripts are not affected.
+
 ## 2026.11.07.1
 
 - Use the exact version for release tags and titles, without a leading `v`.
