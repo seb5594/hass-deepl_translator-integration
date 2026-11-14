@@ -17,7 +17,8 @@ pytest.importorskip("pytest_homeassistant_custom_component")
 
 from homeassistant.config_entries import ConfigEntryState  # noqa: E402
 from homeassistant.const import CONF_API_KEY  # noqa: E402
-from homeassistant.exceptions import HomeAssistantError  # noqa: E402
+from homeassistant.core import Context  # noqa: E402
+from homeassistant.exceptions import HomeAssistantError, Unauthorized  # noqa: E402
 from homeassistant.helpers import config_entry_oauth2_flow, entity_registry as er  # noqa: E402
 from homeassistant.helpers.aiohttp_client import async_get_clientsession  # noqa: E402
 from pytest_homeassistant_custom_component.common import MockConfigEntry  # noqa: E402
@@ -1236,3 +1237,44 @@ async def test_usage_service_failed_refresh_does_not_report_stale_balance(hass, 
     aioclient_mock.clear_requests()
     mock_usage(aioclient_mock, {'message':'Forbidden'}, status=403)
     assert await call(hass,"get_usage",refresh=True) == {'available':False,'reason':'unavailable'}
+
+
+# --- who may call the services ---------------------------------------------------------------
+
+
+async def call_as(hass, user, service, **data):
+    return await hass.services.async_call(
+        DOMAIN, service, data, blocking=True, return_response=True, context=Context(user_id=user.id)
+    )
+
+
+@pytest.mark.parametrize(
+    "service, data",
+    [
+        ("translate_document", {"input_file": "report.txt"}),
+        ("translate_structure", {"input_file": ".storage/auth", "dry_run": True}),
+        ("translate_structure", {"data": {"title": "Hello"}, "dry_run": True}),
+    ],
+)
+async def test_file_services_refuse_users_who_are_not_administrators(
+    hass, hass_read_only_user, service, data
+):
+    await setup_entry(hass)
+    with pytest.raises(Unauthorized):
+        await call_as(hass, hass_read_only_user, service, **data)
+
+
+async def test_file_services_still_serve_administrators_and_automations(hass, hass_admin_user):
+    await setup_entry(hass)
+    data = {"data": {"title": "Hello"}, "dry_run": True}
+    assert (await call_as(hass, hass_admin_user, "translate_structure", **data))["dry_run"] is True
+    assert (await call(hass, "translate_structure", **data))["dry_run"] is True
+
+
+async def test_services_without_file_access_stay_open_to_every_user(
+    hass, aioclient_mock, hass_read_only_user
+):
+    await setup_entry(hass)
+    mock_translation(aioclient_mock, "Hallo")
+    response = await call_as(hass, hass_read_only_user, "translate_text", text="Hello")
+    assert response["text"] == "Hallo"

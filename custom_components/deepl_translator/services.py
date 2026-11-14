@@ -7,8 +7,9 @@ translation backend by anything else running in Home Assistant.
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Awaitable, Callable, Mapping, Sequence
 from dataclasses import dataclass, replace
+from functools import wraps
 from pathlib import Path
 from typing import Any
 
@@ -16,7 +17,7 @@ import voluptuous as vol
 import yaml
 
 from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.exceptions import HomeAssistantError, Unauthorized, UnknownUser
 from homeassistant.helpers import config_validation as cv
 
 try:
@@ -142,16 +143,42 @@ class DeepLServices:
 
     def register(self) -> None:
         """Make the services available; called once for the whole integration."""
-        for name, handler, schema in (
-            (SERVICE_TRANSLATE_TEXT, self.translate_text, TRANSLATE_TEXT_SCHEMA),
-            (SERVICE_TRANSLATE_DOCUMENT, self.translate_document, TRANSLATE_DOCUMENT_SCHEMA),
-            (SERVICE_TRANSLATE_STRUCTURE, self.translate_structure, TRANSLATE_STRUCTURE_SCHEMA),
-            (SERVICE_GET_LANGUAGES, self.get_languages, GET_LANGUAGES_SCHEMA),
-            ("get_usage", self.get_usage, GET_USAGE_SCHEMA),
+        for name, handler, schema, admin_only in (
+            (SERVICE_TRANSLATE_TEXT, self.translate_text, TRANSLATE_TEXT_SCHEMA, False),
+            (SERVICE_TRANSLATE_DOCUMENT, self.translate_document, TRANSLATE_DOCUMENT_SCHEMA, True),
+            (SERVICE_TRANSLATE_STRUCTURE, self.translate_structure, TRANSLATE_STRUCTURE_SCHEMA, True),
+            (SERVICE_GET_LANGUAGES, self.get_languages, GET_LANGUAGES_SCHEMA, False),
+            ("get_usage", self.get_usage, GET_USAGE_SCHEMA, False),
         ):
             self._hass.services.async_register(
-                DOMAIN, name, handler, schema=schema, supports_response=SupportsResponse.OPTIONAL
+                DOMAIN,
+                name,
+                self._require_admin(handler) if admin_only else handler,
+                schema=schema,
+                supports_response=SupportsResponse.OPTIONAL,
             )
+
+    def _require_admin(
+        self, handler: Callable[[ServiceCall], Awaitable[dict[str, Any]]]
+    ) -> Callable[[ServiceCall], Awaitable[dict[str, Any]]]:
+        """Let only administrators call a service that reads or writes files.
+
+        ``async_register_admin_service`` does this too, but in the oldest supported Home Assistant
+        it drops the response of the service, which the callers of these services need. Calls
+        without a user, such as automations and scripts, are trusted like they are there.
+        """
+
+        @wraps(handler)
+        async def admin_handler(call: ServiceCall) -> dict[str, Any]:
+            if call.context.user_id:
+                user = await self._hass.auth.async_get_user(call.context.user_id)
+                if user is None:
+                    raise UnknownUser(context=call.context)
+                if not user.is_admin:
+                    raise Unauthorized(context=call.context)
+            return await handler(call)
+
+        return admin_handler
 
     async def translate_text(self, call: ServiceCall) -> dict[str, Any]:
         """Translate one or more texts."""
