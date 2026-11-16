@@ -1,6 +1,9 @@
 {
   "domain": "deepl_translator",
   "name": "DeepL Translator",
+  "categories": [
+    "productivity_information"
+  ],
   "codeowners": [
     "@seb5594"
   ],
