@@ -65,9 +65,12 @@ mit weniger Funktionen. Die MCP-Server von DeepL für deine KI-Assistenten sind 
 
 ### HACS oder Marketplace
 
-1. Füge dieses Repository als benutzerdefiniertes Repository hinzu (Kategorie *Integration*): in HACS
-   bis Home Assistant 2026.10, unter **Einstellungen → Marketplace** ab 2026.11.
-2. Installiere **DeepL Translator** und starte Home Assistant neu.
+1. Suche in HACS (Home Assistant 2026.10 und älter) oder unter **Einstellungen → Marketplace**
+   (2026.11 und neuer) nach **DeepL Translator**, oder nutze das Badge *HACS · Marketplace* oben.
+2. Lade die Integration herunter und starte Home Assistant neu.
+
+Findet die Suche sie nicht, füge `https://github.com/seb5594/hass-deepl_translator-integration` am selben Ort als
+benutzerdefiniertes Repository hinzu (Kategorie *Integration*) und lade sie von dort herunter.
 
 ### Manuell
 
