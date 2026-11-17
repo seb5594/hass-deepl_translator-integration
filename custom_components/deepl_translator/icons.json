@@ -1,0 +1,35 @@
+{
+  "entity": {
+    "sensor": {
+      "characters_used": {
+        "default": "mdi:counter"
+      },
+      "characters_limit": {
+        "default": "mdi:format-letter-matches"
+      },
+      "characters_remaining": {
+        "default": "mdi:text-box-check-outline"
+      },
+      "usage_percent": {
+        "default": "mdi:gauge"
+      },
+      "billing_period_end": {
+        "default": "mdi:calendar-end"
+      }
+    }
+  },
+  "services": {
+    "translate_text": {
+      "service": "mdi:translate"
+    },
+    "translate_document": {
+      "service": "mdi:file-document-outline"
+    },
+    "translate_structure": {
+      "service": "mdi:code-json"
+    },
+    "get_languages": {
+      "service": "mdi:web"
+    }
+  }
+}

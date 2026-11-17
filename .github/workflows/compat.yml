@@ -1,0 +1,65 @@
+name: Compatibility
+
+on:
+  push:
+    branches: [main, dev]
+    paths: ['custom_components/**', '.github/ha_tests/**', 'tests_ha/**', '.github/tests/**', '.github/workflows/compat.yml', 'hacs.json']
+  pull_request:
+    paths: ['custom_components/**', '.github/ha_tests/**', 'tests_ha/**', '.github/tests/**', '.github/workflows/compat.yml', 'hacs.json']
+  schedule:
+    - cron: '41 5 * * *' # Daily: discover new stable and alpha/beta/RC packages from PyPI.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: compatibility-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  releases:
+    # Repository secrets are not passed to untrusted fork pull requests.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      releases: ${{ steps.releases.outputs.releases }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          repository: seb5594/hass-workflows
+          ref: 1244098d057b20ee12b4bd57b611b4884b7e5441
+          token: ${{ secrets.ORCHESTRATION_PAT }}
+          path: .engine
+          persist-credentials: false
+      - id: releases
+        uses: ./.engine/.actions/ha-targets
+
+  test:
+    needs: releases
+    if: needs.releases.outputs.releases != '[]'
+    name: Home Assistant ${{ matrix.homeassistant }}${{ matrix.preview && ' (preview)' || '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.releases.outputs.releases) }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          repository: seb5594/hass-workflows
+          ref: 1244098d057b20ee12b4bd57b611b4884b7e5441
+          token: ${{ secrets.ORCHESTRATION_PAT }}
+          path: .engine
+          persist-credentials: false
+      - uses: ./.engine/.actions/ha-test
+        with:
+          target: ${{ toJSON(matrix) }}
