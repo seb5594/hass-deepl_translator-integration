@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import hashlib
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import voluptuous as vol
 
 from homeassistant.config_entries import (
+    SOURCE_IGNORE,
     SOURCE_REAUTH,
+    SOURCE_ZEROCONF,
     ConfigEntry,
     ConfigEntryState,
     OptionsFlow,
@@ -17,6 +19,7 @@ from homeassistant.config_entries import (
 from homeassistant.const import CONF_API_KEY
 from homeassistant.core import callback
 from homeassistant.helpers import config_entry_oauth2_flow
+from homeassistant.helpers import instance_id
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.network import NoURLAvailableError
 from homeassistant.helpers.selector import (
@@ -43,10 +46,10 @@ from .const import (
     CONF_DISCOVER_TRANSLATOR,
     CONF_DEFAULT_TARGET_LANGUAGE,
     CONF_UPDATE_INTERVAL,
+    CONF_YAML_MANAGED,
     DEFAULT_CACHE_SIZE,
     DEFAULT_UPDATE_INTERVAL,
     DOMAIN,
-    FREE_KEY_SUFFIX,
     MAX_CACHE_SIZE,
     MAX_UPDATE_INTERVAL,
     MIN_UPDATE_INTERVAL,
@@ -65,15 +68,11 @@ from .languages import (
     normalize_target_language,
     target_from_home_assistant_language,
 )
+from .accounts import account_title, account_unique_id
+from .yaml_config import YAML_ACCOUNT_SCHEMA, YamlConflict, apply_to_existing_account
 
-
-def _unique_id(api_key: str) -> str:
-    """Identify an account without keeping the key itself in the registry."""
-    return hashlib.sha256(api_key.encode()).hexdigest()[:16]
-
-
-def _title(api_key: str) -> str:
-    return "DeepL (Free)" if api_key.endswith(FREE_KEY_SUFFIX) else "DeepL (Pro)"
+if TYPE_CHECKING:
+    from homeassistant.components.zeroconf import ZeroconfServiceInfo
 
 
 def _language_selector() -> SelectSelector:
@@ -124,6 +123,61 @@ class DeepLConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, domain
         """Let the user choose how to sign in."""
         return self.async_show_menu(step_id="user", menu_options=["api_key", "oauth"])
 
+    async def async_step_zeroconf(self, discovery_info: ZeroconfServiceInfo) -> ConfigFlowResult:
+        """Suggest setup when HA sees this installation's own mDNS service."""
+        if discovery_info.properties.get("uuid") != await instance_id.async_get(self.hass):
+            return self.async_abort(reason="not_local_instance")
+        if any(entry.source != SOURCE_IGNORE for entry in self._async_current_entries()):
+            return self.async_abort(reason="already_configured")
+        await self.async_set_unique_id(DOMAIN)
+        self._abort_if_unique_id_configured()
+        self.context["title_placeholders"] = {"name": "DeepL Translator"}
+        return await self.async_step_discovery_confirm()
+
+    async def async_step_discovery_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Wait for the user before asking for credentials or contacting DeepL."""
+        if user_input is not None:
+            return await self.async_step_user()
+        return self.async_show_form(step_id="discovery_confirm", data_schema=vol.Schema({}))
+
+    @callback
+    def _async_clear_discovery_flows(self) -> None:
+        """A configured account makes other setup suggestions unnecessary."""
+        for flow in self.hass.config_entries.flow.async_progress_by_handler(DOMAIN):
+            if flow["flow_id"] != self.flow_id and flow["context"].get("source") == SOURCE_ZEROCONF:
+                self.hass.config_entries.flow.async_abort(flow["flow_id"])
+
+    async def async_step_import(self, user_input: dict[str, Any]) -> ConfigFlowResult:
+        """Create the YAML-managed API account, or update it if it exists.
+
+        The key is not checked here: entry setup validates it, retries connection failures and
+        starts reauthentication, so YAML can be imported while DeepL is offline.
+        """
+        try:
+            imported = YAML_ACCOUNT_SCHEMA(user_input)
+        except vol.Invalid:
+            return self.async_abort(reason="invalid_yaml")
+        try:
+            known = apply_to_existing_account(self.hass, imported)
+        except YamlConflict:
+            return self.async_abort(reason="already_configured")
+        self._async_clear_discovery_flows()
+        if known:
+            return self.async_abort(reason="already_configured")
+
+        api_key = imported.pop(CONF_API_KEY)
+        await self.async_set_unique_id(account_unique_id(api_key))
+        imported.setdefault(
+            CONF_DEFAULT_TARGET_LANGUAGE, target_from_home_assistant_language(self.hass.config.language)
+        )
+        return self.async_create_entry(
+            title=account_title(api_key),
+            data={CONF_API_KEY: api_key, CONF_YAML_MANAGED: True},
+            options=imported,
+        )
+
     async def _async_check_key(self, api_key: str) -> str | None:
         """Return an error key when the API key does not work."""
         try:
@@ -144,13 +198,14 @@ class DeepLConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, domain
         if user_input is not None:
             api_key = user_input[CONF_API_KEY].strip()
             suggested_key = api_key
-            await self.async_set_unique_id(_unique_id(api_key))
+            await self.async_set_unique_id(account_unique_id(api_key))
             self._abort_if_unique_id_configured()
             if error := await self._async_check_key(api_key):
                 errors["base"] = error
             else:
+                self._async_clear_discovery_flows()
                 return self.async_create_entry(
-                    title=_title(api_key),
+                    title=account_title(api_key),
                     data={CONF_API_KEY: api_key},
                     options={
                         CONF_DEFAULT_TARGET_LANGUAGE: normalize_target_language(
@@ -220,6 +275,7 @@ class DeepLConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, domain
             return self.async_abort(reason="reauth_successful")
 
         await self.async_set_unique_id(data["client_id"])
+        self._async_clear_discovery_flows()
         return self.async_create_entry(
             title="DeepL (OAuth)", data=data, options={CONF_DEFAULT_TARGET_LANGUAGE: target}
         )
@@ -244,8 +300,8 @@ class DeepLConfigFlow(config_entry_oauth2_flow.AbstractOAuth2FlowHandler, domain
                 self.hass.config_entries.async_update_entry(
                     entry,
                     data={**entry.data, CONF_API_KEY: api_key},
-                    title=_title(api_key),
-                    unique_id=_unique_id(api_key),
+                    title=account_title(api_key),
+                    unique_id=account_unique_id(api_key),
                 )
                 # A loaded entry reloads through its update listener; the others need a nudge.
                 if entry.state is not ConfigEntryState.LOADED:

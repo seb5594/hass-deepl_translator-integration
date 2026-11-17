@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from homeassistant.config_entries import ConfigEntry
+import logging
+
+from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
 from homeassistant.const import CONF_API_KEY, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
-from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
 from .api import DeepLAuthError, DeepLError, Translation
@@ -25,14 +26,42 @@ from .data import DeepLRuntimeData, async_create_client
 from .languages import target_from_home_assistant_language
 from .oauth import async_create_oauth_backend
 from .services import DeepLServices
+from .yaml_config import (  # noqa: F401 - CONFIG_SCHEMA is Home Assistant's YAML entry point
+    CONFIG_SCHEMA,
+    YamlConflict,
+    apply_to_existing_account,
+)
 
-CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
+_LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Register the services once, so they exist even before an account is loaded."""
     DeepLServices(hass).register()
+    if DOMAIN in config:
+        _import_yaml_account(hass, config[DOMAIN])
     return True
+
+
+def _import_yaml_account(hass: HomeAssistant, account: ConfigType) -> None:
+    """Bring the config entry in line with ``configuration.yaml``.
+
+    An existing account is updated right here, before any account is set up, so it starts with
+    the new values. Only a missing account is created through the import flow, which has to run
+    as a task: awaiting it here would make the new entry wait for this very setup.
+    """
+    try:
+        if apply_to_existing_account(hass, account):
+            return
+    except YamlConflict:
+        _LOGGER.warning(
+            "The API key in configuration.yaml belongs to another account than the one managed "
+            "by YAML; remove one of them under Settings > Devices & services"
+        )
+        return
+    hass.async_create_task(
+        hass.config_entries.flow.async_init(DOMAIN, context={"source": SOURCE_IMPORT}, data=account)
+    )
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
