@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026.11.17.1
+
+- Suggest the setup under *Devices & services* after installation and a restart. This uses the
+  mDNS advertisement of the Home Assistant instance itself, so nothing outside the local network
+  is contacted. Configured and ignored accounts are not suggested again.
+- Configure one API-key account in `configuration.yaml` (`api_key`, `default_target_language`,
+  `update_interval`, `cache_size`, `discover_translator`; `!secret` works). The account is
+  imported into a normal config entry, an existing account with the same key is adopted, and
+  rotating the key in YAML updates the same account instead of adding a second one.
+- An existing YAML account is updated before it is set up, so changed values apply at the first
+  start without an additional reload.
+
 ## 2026.11.14.1
 
 - **Security:** `deepl_translator.translate_document` and `deepl_translator.translate_structure`

@@ -38,6 +38,10 @@
       "reauth_oauth": {
         "title": "Sign in to DeepL again",
         "description": "DeepL no longer accepts the sign-in of {account}. Select Submit to log in again."
+      },
+      "discovery_confirm": {
+        "title": "Set up DeepL Translator",
+        "description": "DeepL Translator was found on this Home Assistant server. Select Submit to enter an API key or sign in at DeepL. Configure an account to use the translation actions."
       }
     },
     "error": {
@@ -56,7 +60,9 @@
       "oauth2_timeout": "DeepL did not answer the sign-in in time.",
       "oauth_timeout": "DeepL did not answer the sign-in in time.",
       "user_rejected_authorize": "DeepL did not allow the sign-in: {error}",
-      "cannot_connect": "DeepL could not be reached. Check the internet connection and try again."
+      "cannot_connect": "DeepL could not be reached. Check the internet connection and try again.",
+      "not_local_instance": "This Home Assistant advertisement belongs to another server.",
+      "invalid_yaml": "The YAML configuration is invalid. Check the API key and options in configuration.yaml."
     },
     "create_entry": {
       "default": "Successfully signed in to DeepL."

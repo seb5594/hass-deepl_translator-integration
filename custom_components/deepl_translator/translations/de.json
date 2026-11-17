@@ -38,6 +38,10 @@
       "reauth_oauth": {
         "title": "Erneut bei DeepL anmelden",
         "description": "DeepL akzeptiert die Anmeldung von {account} nicht mehr. Wähle Senden, um dich erneut anzumelden."
+      },
+      "discovery_confirm": {
+        "title": "DeepL Translator einrichten",
+        "description": "DeepL Translator wurde auf diesem Home-Assistant-Server gefunden. Wähle Weiter, um einen API-Schlüssel einzugeben oder dich bei DeepL anzumelden. Ohne Einrichtung stehen die Übersetzungsaktionen nicht zur Verfügung."
       }
     },
     "error": {
@@ -56,7 +60,9 @@
       "oauth2_timeout": "DeepL hat nicht rechtzeitig auf die Anmeldung geantwortet.",
       "oauth_timeout": "DeepL hat nicht rechtzeitig auf die Anmeldung geantwortet.",
       "user_rejected_authorize": "DeepL hat die Anmeldung nicht erlaubt: {error}",
-      "cannot_connect": "DeepL ist nicht erreichbar. Prüfe die Internetverbindung und versuche es erneut."
+      "cannot_connect": "DeepL ist nicht erreichbar. Prüfe die Internetverbindung und versuche es erneut.",
+      "not_local_instance": "Diese Home-Assistant-Ankündigung gehört zu einem anderen Server.",
+      "invalid_yaml": "Die YAML-Konfiguration ist ungültig. Prüfe API-Schlüssel und Optionen in configuration.yaml."
     },
     "create_entry": {
       "default": "Erfolgreich bei DeepL angemeldet."
