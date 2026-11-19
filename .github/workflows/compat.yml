@@ -63,3 +63,30 @@ jobs:
       - uses: ./.engine/.actions/ha-test
         with:
           target: ${{ toJSON(matrix) }}
+
+  minimum:
+    # Not for pull requests, which cannot write, nor for forks.
+    needs: [releases, test]
+    if: ${{ !cancelled() && needs.releases.result == 'success' && github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
+        with:
+          repository: seb5594/hass-workflows
+          ref: main
+          token: ${{ secrets.ORCHESTRATION_PAT }}
+          path: .engine
+          persist-credentials: false
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: ha-result-*
+          path: ${{ runner.temp }}/ha-results
+          merge-multiple: true
+      - uses: ./.engine/.actions/ha-minimum
+        with:
+          results: ${{ runner.temp }}/ha-results
+          expected: ${{ needs.releases.outputs.releases }}
