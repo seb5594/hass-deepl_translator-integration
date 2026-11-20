@@ -4,8 +4,6 @@
     <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/seb5594/hass-deepl_translator-integration/main/custom_components/deepl_translator/brand/dark_logo@2x.png">
     <img src="https://raw.githubusercontent.com/seb5594/hass-deepl_translator-integration/main/custom_components/deepl_translator/brand/logo@2x.png" alt="DeepL Translator" width="320" height="160">
   </picture>
-  <br>
-  DeepL Translator
 </h1>
 
 <p align="center">
