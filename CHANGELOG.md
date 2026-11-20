@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026.11.20
+
+- Publish the first build of the day without a build suffix. Later builds use .1, .2, and so on.
+
 ## 2026.11.17.1
 
 - Suggest the setup under *Devices & services* after installation and a restart. This uses the

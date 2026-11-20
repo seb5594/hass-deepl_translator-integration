@@ -16,7 +16,7 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/seb5594/hass-deepl_translator-integration/issues",
   "requirements": [],
-  "version": "2026.11.17.1",
+  "version": "2026.11.20",
   "zeroconf": [
     {
       "type": "_home-assistant._tcp.local.",
